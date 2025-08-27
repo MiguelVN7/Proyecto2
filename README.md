@@ -1,8 +1,13 @@
-# eco_track
+<<<<<<< HEAD
+# Proyecto2 / eco_track
 
-A new Flutter project.
+Contiene el proyecto realizado por Juan Esteban Zuluaga, Juan Ignacio Lotero y Miguel Villegas para la materia de Proyecto 2.
 
-## Getting Started
+## eco_track (Flutter)
+
+Este repositorio también contiene el esqueleto de la aplicación Flutter `eco_track`.
+
+### Getting Started
 
 This project is a starting point for a Flutter application.
 
