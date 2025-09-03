@@ -106,7 +106,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(152, 196, 85, 1),
+      backgroundColor: const Color.fromRGBO(51, 78, 172, 1),
       body: SafeArea(
         child: Stack(
           children: [
@@ -115,7 +115,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Container(
                   height: 100,
-                  color: Color.fromRGBO(152, 196, 85, 1),
+                  color: Color.fromRGBO(51, 78, 172, 1),
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: const Text(
@@ -174,47 +174,51 @@ class HomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Circulo
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.green.shade900,
-                        width: 4,
+                  Expanded(
+                    child: Container(
+                      height: 120,
+                      margin: const EdgeInsets.only(right: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.green.shade900,
+                          width: 4,
+                        ),
                       ),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Progreso al\nsiguiente\nnivel',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      child: const Center(
+                        child: Text(
+                          'Progreso al\nsiguiente\nnivel',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
 
                   // Cuadrado
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.green.shade900,
-                        width: 4,
+                  Expanded(
+                    child: Container(
+                      height: 120,
+                      margin: const EdgeInsets.only(left: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: Colors.green.shade900,
+                          width: 4,
+                        ),
+                        borderRadius: BorderRadius.circular(45),
                       ),
-                      borderRadius: BorderRadius.circular(45),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Puntos',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      child: const Center(
+                        child: Text(
+                          'Puntos',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
