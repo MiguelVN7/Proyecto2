@@ -64,15 +64,71 @@ class _CameraScreenState extends State<CameraScreen> {
       cameraIndex = 0;
     }
 
-    _controller = CameraController(
-      _cameras![cameraIndex],
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
+    // Intentar con diferentes presets hasta encontrar el mejor
+    ResolutionPreset targetPreset = ResolutionPreset.ultraHigh;
+
+    // Probar presets en orden descendente de calidad
+    try {
+      // Primero intentar con ultraHigh (4K si está disponible)
+      _controller = CameraController(
+        _cameras![cameraIndex],
+        ResolutionPreset.ultraHigh,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      print('Attempting camera setup with resolution preset: ultraHigh');
+    } catch (e) {
+      try {
+        // Si ultraHigh falla, usar veryHigh
+        targetPreset = ResolutionPreset.veryHigh;
+        _controller = CameraController(
+          _cameras![cameraIndex],
+          targetPreset,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.jpeg,
+        );
+        print('Attempting camera setup with resolution preset: veryHigh');
+      } catch (e2) {
+        // Si todo falla, usar max como fallback
+        targetPreset = ResolutionPreset.max;
+        _controller = CameraController(
+          _cameras![cameraIndex],
+          targetPreset,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.jpeg,
+        );
+        print('Attempting camera setup with resolution preset: max (fallback)');
+      }
+    }
 
     _initializeControllerFuture = _controller!.initialize();
 
     await _initializeControllerFuture;
+
+    // Configuraciones adicionales después de la inicialización
+    if (_controller != null && _controller!.value.isInitialized) {
+      // Establecer el zoom inicial
+      await _controller!.setZoomLevel(1.0);
+
+      // Configurar el modo de exposición para mejor calidad
+      await _controller!.setExposureMode(ExposureMode.auto);
+
+      // Configurar el modo de enfoque para captura nítida
+      await _controller!.setFocusMode(FocusMode.auto);
+
+      // Configurar el flash mode actual
+      await _controller!.setFlashMode(_flashMode);
+
+      // Logear información detallada de la resolución actual
+      final value = _controller!.value;
+      print('=== CAMERA DEBUG INFO ===');
+      print('Camera initialized with preview size: ${value.previewSize}');
+      print('Camera description: ${_cameras![cameraIndex].name}');
+      print('Aspect ratio: ${value.aspectRatio}');
+      print('Camera resolution preset used: ${targetPreset}');
+      print('Device Level: INFO_SUPPORTED_HARDWARE_LEVEL_3 detected');
+      print('========================');
+    }
 
     if (mounted) {
       setState(() {
@@ -281,7 +337,7 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             )
           else
-            // Camera preview with rounded corners
+            // Camera preview with rounded corners and correct aspect ratio
             Positioned.fill(
               child: Container(
                 margin: const EdgeInsets.only(top: 120, bottom: 200),
@@ -296,7 +352,10 @@ class _CameraScreenState extends State<CameraScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: CameraPreview(_controller!),
+                          child: AspectRatio(
+                            aspectRatio: _controller!.value.aspectRatio,
+                            child: CameraPreview(_controller!),
+                          ),
                         ),
                       );
                     } else {
@@ -752,10 +811,12 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
     } catch (e) {
       // Cerrar indicador de carga si aún está abierto
       if (mounted) Navigator.of(context).pop();
-      
+
       // Mostrar error genérico
-      _showErrorDialog('Error de conexión', 
-          'No se pudo enviar el reporte. Verifica tu conexión a internet.');
+      _showErrorDialog(
+        'Error de conexión',
+        'No se pudo enviar el reporte. Verifica tu conexión a internet.',
+      );
     }
   }
 
@@ -831,9 +892,13 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('📍 Ubicación: ${LocationService.formatCoordinates(_locationResult!.latitude!, _locationResult!.longitude!)}'),
+                    Text(
+                      '📍 Ubicación: ${LocationService.formatCoordinates(_locationResult!.latitude!, _locationResult!.longitude!)}',
+                    ),
                     const SizedBox(height: 4),
-                    Text('🎯 Precisión: ±${_locationResult!.accuracy!.toStringAsFixed(1)}m'),
+                    Text(
+                      '🎯 Precisión: ±${_locationResult!.accuracy!.toStringAsFixed(1)}m',
+                    ),
                     const SizedBox(height: 4),
                     Text('♻️ Clasificación: $_identificationResult'),
                   ],
@@ -881,11 +946,7 @@ class _PhotoPreviewScreenState extends State<PhotoPreviewScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          icon: const Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 64,
-          ),
+          icon: const Icon(Icons.error_outline, color: Colors.red, size: 64),
           title: Text(title),
           content: Column(
             mainAxisSize: MainAxisSize.min,

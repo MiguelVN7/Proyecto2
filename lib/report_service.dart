@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ReportService {
-  static const String baseUrl = 'http://192.168.1.115:3000/api';
+  static const String baseUrl = 'http://192.168.1.19:3000/api';
   
   static Future<ReportSubmissionResult> submitReport({
     required File imageFile,
@@ -62,7 +62,7 @@ class ReportService {
   static Future<bool> testConnection() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.115:3000/health'),
+        Uri.parse('http://192.168.1.19:3000/health'),
         headers: {'Accept': 'application/json'},
       ).timeout(const Duration(seconds: 5));
       
