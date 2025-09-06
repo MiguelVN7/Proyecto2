@@ -1,0 +1,14 @@
+{
+  "id": "ECO-21C9C201",
+  "timestamp": "2025-09-06T15:49:32.550633",
+  "location": {
+    "latitude": 6.1746947,
+    "longitude": -75.542671,
+    "accuracy": 11.534000396728516
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-21C9C201.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T20:49:32.568Z"
+}

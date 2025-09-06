@@ -1,0 +1,14 @@
+{
+  "id": "ECO-2EB352E8",
+  "timestamp": "2025-09-06T15:53:54.906465",
+  "location": {
+    "latitude": 6.1747541,
+    "longitude": -75.5426657,
+    "accuracy": 15.602999687194824
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-2EB352E8.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T20:53:55.168Z"
+}

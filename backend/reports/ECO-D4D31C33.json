@@ -1,0 +1,14 @@
+{
+  "id": "ECO-D4D31C33",
+  "timestamp": "2025-09-06T15:28:33.924362",
+  "location": {
+    "latitude": 6.1748304,
+    "longitude": -75.5426445,
+    "accuracy": 17.048999786376953
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-D4D31C33.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T20:28:34.061Z"
+}

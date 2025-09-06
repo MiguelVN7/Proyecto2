@@ -1,0 +1,14 @@
+{
+  "id": "ECO-5E492CD7",
+  "timestamp": "2025-09-06T15:29:21.804216",
+  "location": {
+    "latitude": 6.1748952,
+    "longitude": -75.5426305,
+    "accuracy": 19.398000717163086
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-5E492CD7.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T20:29:22.041Z"
+}

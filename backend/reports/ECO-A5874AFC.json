@@ -1,0 +1,14 @@
+{
+  "id": "ECO-A5874AFC",
+  "timestamp": "2025-09-06T15:40:46.264936",
+  "location": {
+    "latitude": 6.1749179,
+    "longitude": -75.5426167,
+    "accuracy": 11.47700023651123
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-A5874AFC.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T20:40:46.456Z"
+}

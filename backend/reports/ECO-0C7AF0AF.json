@@ -1,0 +1,14 @@
+{
+  "id": "ECO-0C7AF0AF",
+  "timestamp": "2025-09-06T20:07:11.283Z",
+  "location": {
+    "latitude": 4.61,
+    "longitude": -74.07,
+    "accuracy": 4.2
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "Unknown",
+  "image_path": "/images/ECO-0C7AF0AF.png",
+  "status": "received",
+  "created_at": "2025-09-06T20:07:11.283Z"
+}

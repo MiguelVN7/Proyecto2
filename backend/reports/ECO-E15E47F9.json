@@ -1,0 +1,14 @@
+{
+  "id": "ECO-E15E47F9",
+  "timestamp": "2025-09-04T12:30:00Z",
+  "location": {
+    "latitude": 4.624335,
+    "longitude": -74.063644,
+    "accuracy": 8.5
+  },
+  "classification": "Test",
+  "device_info": "Test",
+  "image_path": "/images/ECO-E15E47F9.jpeg",
+  "status": "received",
+  "created_at": "2025-09-04T15:14:33.827Z"
+}
