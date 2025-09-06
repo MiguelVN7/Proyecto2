@@ -1,5 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
+import 'colors.dart';
 
 class LocationService {
   static const double requiredAccuracy =
@@ -221,13 +222,13 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
             const SizedBox(height: 12),
             Text(
               _errorMessage!,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(color: EcoColors.error, fontSize: 12),
             ),
           ],
           const SizedBox(height: 8),
           const Text(
             'Tip: Puedes obtener las coordenadas desde Google Maps',
-            style: TextStyle(fontSize: 11, color: Colors.grey),
+            style: TextStyle(fontSize: 11, color: EcoColors.grey500),
           ),
         ],
       ),
@@ -238,9 +239,7 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
         ),
         ElevatedButton(
           onPressed: _validateAndReturn,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromRGBO(152, 196, 85, 1),
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: EcoColors.secondary),
           child: const Text('Usar Ubicación'),
         ),
       ],

@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'report_service.dart';
+import 'colors.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -270,7 +271,10 @@ class _CameraScreenState extends State<CameraScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.green, width: 4),
+                        border: Border.all(
+                          color: EcoColors.secondary,
+                          width: 4,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.3),
@@ -407,7 +411,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al registrar reporte: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: EcoColors.error,
           ),
         );
       }
@@ -437,7 +441,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green, width: 2),
+                border: Border.all(color: EcoColors.secondary, width: 2),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),

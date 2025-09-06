@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'camera_screen.dart';
+import 'colors.dart';
 
 void main() {
   runApp(const EcoTrackApp());
@@ -14,7 +15,7 @@ class EcoTrackApp extends StatelessWidget {
     return MaterialApp(
       title: 'Eco Track',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade400),
+        colorScheme: EcoColorScheme.ecoTheme,
         useMaterial3: true,
       ),
       home: const MainScreen(),
@@ -43,14 +44,12 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFFFFBF5,
-      ), // Same beige color as HomeScreen
+      backgroundColor: EcoColors.background,
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         height: kBottomNavigationBarHeight + 24,
         decoration: BoxDecoration(
-          color: Color.fromRGBO(152, 196, 85, 1),
+          color: EcoColors.primary,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(45),
             topRight: Radius.circular(45),
@@ -66,8 +65,8 @@ class _MainScreenState extends State<MainScreen> {
             elevation: 0,
             currentIndex: _currentIndex,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white70,
+            selectedItemColor: EcoColors.onPrimary,
+            unselectedItemColor: EcoColors.onPrimary.withOpacity(0.7),
             showSelectedLabels: false,
             showUnselectedLabels: false,
             selectedFontSize: 0,
@@ -133,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(51, 78, 172, 1),
+      backgroundColor: EcoColors.primary,
       body: SafeArea(
         child: Stack(
           children: [
@@ -142,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Container(
                   height: 100,
-                  color: Color.fromRGBO(51, 78, 172, 1),
+                  color: EcoColors.primary,
                   alignment: Alignment.centerLeft,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -153,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: EcoColors.onPrimary,
                         ),
                       ),
                       Container(
@@ -162,14 +161,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: EcoColors.onPrimary.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           _version,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Colors.white70,
+                            color: EcoColors.onPrimary.withOpacity(0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -181,9 +180,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 // light/beige background below header
                 Expanded(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFFBF5),
-                      borderRadius: BorderRadius.vertical(
+                    decoration: BoxDecoration(
+                      color: EcoColors.surface,
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(45),
                       ),
                     ),
@@ -201,9 +200,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: EcoColors.surface,
                   borderRadius: BorderRadius.circular(45),
-                  border: Border.all(color: Colors.green.shade900, width: 4),
+                  border: Border.all(color: EcoColors.accent, width: 4),
                 ),
                 child: const Center(
                   child: Text(
@@ -229,10 +228,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 120,
                       margin: const EdgeInsets.only(right: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: EcoColors.surface,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.green.shade900,
+                          color: EcoColors.secondary,
                           width: 4,
                         ),
                       ),
@@ -255,9 +254,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 120,
                       margin: const EdgeInsets.only(left: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: EcoColors.surface,
                         border: Border.all(
-                          color: Colors.green.shade900,
+                          color: EcoColors.secondary,
                           width: 4,
                         ),
                         borderRadius: BorderRadius.circular(45),
@@ -285,9 +284,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: EcoColors.surface,
                   borderRadius: BorderRadius.circular(45),
-                  border: Border.all(color: Colors.green.shade900, width: 4),
+                  border: Border.all(color: EcoColors.accent, width: 4),
                 ),
                 child: const Center(
                   child: Text(
