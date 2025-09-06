@@ -1,13 +1,38 @@
-# EcoTrack Backend API
+# EcoTrack Backend
 
 Backend server para recibir y procesar reportes de residuos de la aplicación EcoTrack.
+
+## 🚀 Configuración Rápida para Desarrolladores
+
+### Prerrequisitos
+- Node.js (v16 o superior)  
+- SQLite3
+- npm o yarn
 
 ## Instalación
 
 ```bash
-cd eco_track_backend
 npm install
 ```
+
+### 🗄️ Configurar Base de Datos
+
+**Para nuevos desarrolladores:**
+```bash
+./setup_database.sh
+```
+
+Este script automáticamente:
+- Crea la base de datos SQLite  
+- Inserta datos de ejemplo para desarrollo
+- Configura las tablas necesarias
+
+**❌ ¿Por qué no está la BD en Git?**
+- Contiene datos que cambian constantemente
+- Evita conflictos entre desarrolladores  
+- Mantiene el repositorio liviano
+
+**✅ Cada desarrollador tiene su propia BD local**
 
 ## Ejecutar
 
