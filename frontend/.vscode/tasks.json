@@ -1,0 +1,51 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🧹 Clean Deploy",
+            "type": "shell",
+            "command": "./dev_deploy.sh",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Despliegue limpio con cache reset y versión incrementada"
+        },
+        {
+            "label": "📱 Force Uninstall",
+            "type": "shell",
+            "command": "adb",
+            "args": ["uninstall", "com.example.eco_track"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "Desinstalar completamente la app del dispositivo"
+        },
+        {
+            "label": "🔄 Deep Clean",
+            "type": "shell",
+            "command": "flutter",
+            "args": ["clean"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": [],
+            "detail": "Limpiar completamente el proyecto Flutter"
+        }
+    ]
+}
