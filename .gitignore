@@ -30,10 +30,6 @@ backend/coverage/
 # Excluir archivos de base de datos (contienen datos dinámicos)
 backend/*.db
 backend/*.sqlite*
-
-# Incluir scripts de configuración de BD
-!backend/init_database.sql
-!backend/setup_database.sh
 backend/*.sqlite
 backend/*.sqlite3
 backend/database/

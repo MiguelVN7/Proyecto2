@@ -204,7 +204,7 @@ app.get('/api/reports', async (req, res) => {
   try {
     await db.initialize();
     
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`🌱 EcoTrack Backend API ejecutándose en puerto ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`📝 Reportes API: http://localhost:${PORT}/api/reports`);
@@ -212,6 +212,7 @@ app.get('/api/reports', async (req, res) => {
       console.log(`�📁 Directorio reportes: ${reportsDir}`);
       console.log(`🖼️ Directorio imágenes: ${imagesDir}`);
       console.log(`�️ Base de datos: SQLite (ecotrack.db)`);
+      console.log(`🌐 Accesible desde la red en: http://192.168.1.115:${PORT}`);
     });
   } catch (error) {
     console.error('❌ Error inicializando aplicación:', error);

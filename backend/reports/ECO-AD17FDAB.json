@@ -1,0 +1,14 @@
+{
+  "id": "ECO-AD17FDAB",
+  "timestamp": "2025-09-06T18:51:46.561643",
+  "location": {
+    "latitude": 6.230833,
+    "longitude": -75.590553,
+    "accuracy": 10
+  },
+  "classification": "Residuo orgánico (cáscara de fruta)",
+  "device_info": "android",
+  "image_path": "/images/ECO-AD17FDAB.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T23:51:46.796Z"
+}
