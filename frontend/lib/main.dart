@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'camera_screen.dart';
 import 'colors.dart';
+import 'models/reporte.dart';
+import 'screens/mapa_reportes_screen.dart';
+import 'screens/lista_reportes_screen.dart';
 
 void main() {
   runApp(const EcoTrackApp());
@@ -23,6 +26,33 @@ class EcoTrackApp extends StatelessWidget {
   }
 }
 
+// Datos de ejemplo para los reportes
+final List<Reporte> reportesEjemplo = [
+  Reporte(
+    id: '1',
+    fotoUrl: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
+    ubicacion: 'Calle 1 #2-3',
+    clasificacion: 'Plástico',
+    estado: 'Pendiente',
+    prioridad: 'Alta',
+    tipoResiduo: 'Plástico',
+    lat: 6.244203,
+    lng: -75.581212,
+  ),
+  Reporte(
+    id: '2',
+    fotoUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
+    ubicacion: 'Carrera 45 #10-20',
+    clasificacion: 'Vidrio',
+    estado: 'Completado',
+    prioridad: 'Media',
+    tipoResiduo: 'Vidrio',
+    lat: 6.250000,
+    lng: -75.570000,
+  ),
+  // Se pueden añadir más reportes de ejemplo aquí
+];
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -35,9 +65,9 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Estadísticas')), // Placeholder
-    const HomeScreen(), // Placeholder for camera (will navigate to separate screen)
-    const Center(child: Text('Mapa')), // Placeholder
+    ListaReportesScreen(reportes: reportesEjemplo), // Lista de reportes (ítem del rayo)
+    const HomeScreen(), // Placeholder para cámara (se navega aparte)
+    MapaReportesScreen(reportes: reportesEjemplo), // Mapa de reportes
     const Center(child: Text('Perfil')), // Placeholder
   ];
 
