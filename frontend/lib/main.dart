@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'camera_screen.dart';
 import 'colors.dart';
+import 'models/reporte.dart';
+import 'screens/mapa_reportes_screen.dart';
+import 'screens/lista_reportes_screen.dart';
 
 /// Entry point of the EcoTrack application.
 ///
@@ -35,6 +38,36 @@ class EcoTrackApp extends StatelessWidget {
   }
 }
 
+/// Sample data for testing the reports functionality.
+/// 
+/// This list contains example reports with different types of waste,
+/// locations, and status for development and testing purposes.
+final List<Reporte> reportesEjemplo = [
+  Reporte(
+    id: '1',
+    fotoUrl: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
+    ubicacion: 'Calle 1 #2-3',
+    clasificacion: 'Plástico',
+    estado: 'Pendiente',
+    prioridad: 'Alta',
+    tipoResiduo: 'Plástico',
+    lat: 6.244203,
+    lng: -75.581212,
+  ),
+  Reporte(
+    id: '2',
+    fotoUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
+    ubicacion: 'Carrera 45 #10-20',
+    clasificacion: 'Vidrio',
+    estado: 'Completado',
+    prioridad: 'Media',
+    tipoResiduo: 'Vidrio',
+    lat: 6.250000,
+    lng: -75.570000,
+  ),
+  // More example reports can be added here
+];
+
 /// Main screen widget with bottom navigation.
 ///
 /// This widget provides the primary navigation structure for the app,
@@ -63,9 +96,9 @@ class _MainScreenState extends State<MainScreen> {
   /// to a separate screen rather than switching content.
   final List<Widget> _screens = [
     const HomeScreen(),
-    const Center(child: Text('Statistics')), // Placeholder
+    ListaReportesScreen(reportes: reportesEjemplo), // Reports list screen
     const HomeScreen(), // Placeholder for camera (will navigate to separate screen)
-    const Center(child: Text('Map')), // Placeholder
+    MapaReportesScreen(reportes: reportesEjemplo), // Map screen with reports
     const Center(child: Text('Profile')), // Placeholder
   ];
 
