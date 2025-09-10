@@ -3,9 +3,13 @@
 /// This screen shows all submitted reports as markers on a Google Maps view,
 /// allowing users to visualize the geographic distribution of environmental issues.
 /// Each marker displays report details including classification and location.
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import '../models/reporte.dart';
+
+// Project imports:
 import '../colors.dart';
+import '../models/reporte.dart';
 
 /// Map screen widget displaying reports as interactive markers.
 ///

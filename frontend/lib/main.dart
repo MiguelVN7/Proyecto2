@@ -1,10 +1,15 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:package_info_plus/package_info_plus.dart';
+
+// Project imports:
 import 'camera_screen.dart';
 import 'colors.dart';
 import 'models/reporte.dart';
-import 'screens/mapa_reportes_screen.dart';
 import 'screens/lista_reportes_screen.dart';
+import 'screens/mapa_reportes_screen.dart';
 
 /// Entry point of the EcoTrack application.
 ///

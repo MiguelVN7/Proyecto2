@@ -1,5 +1,8 @@
+// Dart imports:
 import 'dart:convert';
 import 'dart:io';
+
+// Package imports:
 import 'package:http/http.dart' as http;
 
 /// A service class that handles environmental report submission and backend communication.
@@ -63,17 +66,17 @@ class ReportService {
         body: json.encode(reportData),
       );
 
-      final responseData = json.decode(response.body);
+      final responseData = json.decode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 201 && responseData['success'] == true) {
         return ReportSubmissionResult.success(
-          reportCode: responseData['report_code'],
-          message: responseData['message'],
-          timestamp: responseData['timestamp'],
+          reportCode: responseData['report_code'] as String,
+          message: responseData['message'] as String,
+          timestamp: responseData['timestamp'] as String?,
         );
       } else {
         return ReportSubmissionResult.error(
-          message: responseData['message'] ?? 'Error sending report',
+          message: responseData['message'] as String? ?? 'Error sending report',
         );
       }
     } catch (e) {

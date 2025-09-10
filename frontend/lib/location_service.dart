@@ -1,5 +1,10 @@
-import 'package:geolocator/geolocator.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:geolocator/geolocator.dart';
+
+// Project imports:
 import 'colors.dart';
 
 /// Service class for handling GPS location operations.

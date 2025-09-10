@@ -1,11 +1,18 @@
+// Dart imports:
 import 'dart:io';
 import 'dart:math';
-import 'package:camera/camera.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
-import 'report_service.dart';
+
+// Project imports:
 import 'colors.dart';
 import 'location_service.dart';
+import 'report_service.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});

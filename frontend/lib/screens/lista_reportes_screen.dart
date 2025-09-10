@@ -8,9 +8,13 @@
 ///
 /// Each report is displayed as a card showing the photo, classification,
 /// location, and current status information.
+
+// Flutter imports:
 import 'package:flutter/material.dart';
-import '../models/reporte.dart';
+
+// Project imports:
 import '../colors.dart';
+import '../models/reporte.dart';
 
 /// Reports list screen widget with filtering capabilities.
 ///
