@@ -15,6 +15,8 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
   String? estado;
   String? prioridad;
   String? tipoResiduo;
+  // Mapa para guardar el estado seleccionado de cada reporte
+  final Map<String, String> estadoBoton = {};
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +63,39 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
             itemCount: filtrados.length,
             itemBuilder: (context, i) {
               final r = filtrados[i];
+              // Estado actual del botón para este reporte
+              final estadoActual = estadoBoton[r.id] ?? 'Recibido';
               return Card(
                 child: ListTile(
                   leading: Image.network(r.fotoUrl, width: 50, height: 50, fit: BoxFit.cover),
                   title: Text(r.clasificacion),
-                  subtitle: Text('${r.ubicacion}\n${r.estado} - ${r.prioridad} - ${r.tipoResiduo}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${r.ubicacion}\n${r.estado} - ${r.prioridad} - ${r.tipoResiduo}'),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text('Estado: '),
+                          DropdownButton<String>(
+                            value: estadoActual,
+                            items: const [
+                              DropdownMenuItem(value: 'Recibido', child: Text('Recibido')),
+                              DropdownMenuItem(value: 'En recorrido', child: Text('En recorrido')),
+                              DropdownMenuItem(value: 'Recogido', child: Text('Recogido')),
+                            ],
+                            onChanged: (nuevoEstado) {
+                              if (nuevoEstado != null) {
+                                setState(() {
+                                  estadoBoton[r.id] = nuevoEstado;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
