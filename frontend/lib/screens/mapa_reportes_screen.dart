@@ -8,17 +8,30 @@ import '../models/reporte.dart';
 import '../colors.dart';
 
 /// Map screen widget displaying reports as interactive markers.
+///
+/// Displays environmental reports in a visual format showing their geographic
+/// distribution. Currently implements a fallback list view while Google Maps
+/// integration is being configured. Each report shows classification, location,
+/// coordinates, and current status.
 class MapaReportesScreen extends StatefulWidget {
   /// List of reports to display on the map.
   final List<Reporte> reportes;
 
-  /// Creates a map screen with the provided reports.
+  /// Creates a map screen with the provided reports data.
+  ///
+  /// The [reportes] parameter contains the list of environmental reports
+  /// to be displayed. If empty, an appropriate empty state will be shown.
   const MapaReportesScreen({super.key, required this.reportes});
 
   @override
   State<MapaReportesScreen> createState() => _MapaReportesScreenState();
 }
 
+/// State class for MapaReportesScreen managing display and interactions.
+///
+/// Handles the rendering of reports in a visual list format as a temporary
+/// replacement for Google Maps while proper API configuration is completed.
+/// Manages the color coding and iconography for different waste types.
 class _MapaReportesScreenState extends State<MapaReportesScreen> {
   @override
   Widget build(BuildContext context) {
@@ -33,6 +46,10 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
   }
 
   /// Builds the empty state when no reports are available.
+  ///
+  /// Displays a user-friendly message with an icon and instructions
+  /// when there are no environmental reports to show on the map.
+  /// Encourages users to submit their first report.
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -62,7 +79,14 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
     );
   }
 
-  /// Builds the map view with report markers.
+  /// Builds the main map view displaying environmental reports.
+  ///
+  /// Currently implements a fallback list view instead of Google Maps
+  /// due to API configuration requirements. Shows reports in a scrollable
+  /// list format with status indicators and location information.
+  ///
+  /// Future implementation will integrate Google Maps Flutter plugin
+  /// for geographic visualization of report locations.
   Widget _buildMapView() {
     // Temporary fallback: show reports in a visual list instead of map
     // This prevents crashes while Google Maps is being configured
@@ -70,6 +94,17 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
   }
 
   /// Builds a visual list of reports as a temporary map replacement.
+  ///
+  /// Creates a scrollable ListView of environmental reports with
+  /// visual cards for each report. Each card displays:
+  /// - Type-specific icon and color coding
+  /// - Classification and location text
+  /// - Precise GPS coordinates
+  /// - Status indicator
+  ///
+  /// This serves as a fallback UI while Google Maps integration
+  /// is being configured, providing a user-friendly alternative
+  /// for viewing all environmental reports.
   Widget _buildReportsList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -115,7 +150,20 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
     );
   }
 
-  /// Returns appropriate color based on waste type.
+  /// Returns appropriate color based on waste type classification.
+  ///
+  /// Provides color coding for different types of environmental waste
+  /// to improve visual identification and user experience:
+  /// - Plastic waste: Blue color (ocean/water association)
+  /// - Glass waste: Green color (recycling/nature association)
+  /// - Paper waste: Yellow/brown color (natural material)
+  /// - Metal waste: Orange color (industrial/rust association)
+  /// - Unknown types: Red color (attention/warning)
+  ///
+  /// Parameters:
+  /// - [clasificacion]: The waste type classification string
+  ///
+  /// Returns the appropriate [Color] for the given waste type.
   Color _getColorByType(String clasificacion) {
     switch (clasificacion.toLowerCase()) {
       case 'plástico':
@@ -131,7 +179,20 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
     }
   }
 
-  /// Returns appropriate icon based on waste type.
+  /// Returns appropriate icon based on waste type classification.
+  ///
+  /// Provides intuitive iconography for different types of environmental
+  /// waste to enhance visual recognition and user experience:
+  /// - Plastic waste: Local drink icon (bottles/containers)
+  /// - Glass waste: Wine bar icon (glass containers)
+  /// - Paper waste: Description icon (documents/paper)
+  /// - Metal waste: Build icon (tools/construction materials)
+  /// - Unknown types: Delete icon (general waste)
+  ///
+  /// Parameters:
+  /// - [clasificacion]: The waste type classification string
+  ///
+  /// Returns the appropriate [IconData] for the given waste type.
   IconData _getIconByType(String clasificacion) {
     switch (clasificacion.toLowerCase()) {
       case 'plástico':
