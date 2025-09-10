@@ -1,16 +1,33 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:package_info_plus/package_info_plus.dart';
+
+// Project imports:
 import 'camera_screen.dart';
 import 'colors.dart';
 import 'models/reporte.dart';
-import 'screens/mapa_reportes_screen.dart';
 import 'screens/lista_reportes_screen.dart';
+import 'screens/mapa_reportes_screen.dart';
 
+/// Entry point of the EcoTrack application.
+///
+/// Initializes and runs the EcoTrack app with proper theming
+/// and Material Design configuration.
 void main() {
   runApp(const EcoTrackApp());
 }
 
+/// Root widget of the EcoTrack application.
+///
+/// This widget sets up the main application structure including:
+/// - Application title and metadata
+/// - Theme configuration using EcoColors
+/// - Material Design 3 components
+/// - Navigation to the main screen
 class EcoTrackApp extends StatelessWidget {
+  /// Creates the main EcoTrack application widget.
   const EcoTrackApp({super.key});
 
   @override
@@ -26,7 +43,10 @@ class EcoTrackApp extends StatelessWidget {
   }
 }
 
-// Datos de ejemplo para los reportes
+/// Sample data for testing the reports functionality.
+///
+/// This list contains example reports with different types of waste,
+/// locations, and status for development and testing purposes.
 final List<Reporte> reportesEjemplo = [
   Reporte(
     id: '1',
@@ -50,25 +70,31 @@ final List<Reporte> reportesEjemplo = [
     lat: 6.250000,
     lng: -75.570000,
   ),
-  // Se pueden añadir más reportes de ejemplo aquí
+  // More example reports can be added here
 ];
-
 class MainScreen extends StatefulWidget {
+  /// Creates the main screen with navigation.
   const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
+/// State class for MainScreen managing navigation and screen content.
 class _MainScreenState extends State<MainScreen> {
+  /// Currently selected tab index.
   int _currentIndex = 0;
 
+  /// List of screens corresponding to each navigation tab.
+  ///
+  /// The camera tab (index 2) doesn't use this list as it navigates
+  /// to a separate screen rather than switching content.
   final List<Widget> _screens = [
     const HomeScreen(),
-    ListaReportesScreen(reportes: reportesEjemplo), // Lista de reportes (ítem del rayo)
-    const HomeScreen(), // Placeholder para cámara (se navega aparte)
-    MapaReportesScreen(reportes: reportesEjemplo), // Mapa de reportes
-    const Center(child: Text('Perfil')), // Placeholder
+    ListaReportesScreen(reportes: reportesEjemplo), // Reports list screen
+    const HomeScreen(), // Placeholder for camera (will navigate to separate screen)
+    MapaReportesScreen(reportes: reportesEjemplo), // Map screen with reports
+    const Center(child: Text('Profile')), // Placeholder
   ];
 
   @override
@@ -104,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
             iconSize: 35,
             onTap: (index) {
               if (index == 2) {
-                // Camera tab
+                // Camera tab - navigate to separate screen
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CameraScreen()),
@@ -130,31 +156,47 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
+/// Home screen displaying the main dashboard.
+///
+/// This screen shows the user's progress, achievements, and current reports.
+/// Features include:
+/// - Progress tracking for current achievements
+/// - Level progression indicators
+/// - Points display
+/// - Current report status
+/// - App version information
 class HomeScreen extends StatefulWidget {
+  /// Creates the home screen dashboard.
   const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// State class for HomeScreen managing version info and UI updates.
 class _HomeScreenState extends State<HomeScreen> {
-  String _version = 'Loading...';
+  /// Current app version string displayed in the header.
+  String _appVersion = 'Loading...';
 
   @override
   void initState() {
     super.initState();
-    _loadVersion();
+    _loadVersionInfo();
   }
 
-  Future<void> _loadVersion() async {
+  /// Loads the application version information.
+  ///
+  /// Retrieves version and build number from package info,
+  /// falling back to default values if unavailable.
+  Future<void> _loadVersionInfo() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
       setState(() {
-        _version = 'v${packageInfo.version}+${packageInfo.buildNumber}';
+        _appVersion = 'v${packageInfo.version}+${packageInfo.buildNumber}';
       });
     } catch (e) {
       setState(() {
-        _version = 'v1.0.0+2';
+        _appVersion = 'v1.0.0+2';
       });
     }
   }
@@ -178,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Inicio',
+                        'Home',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -195,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _version,
+                          _appVersion,
                           style: TextStyle(
                             fontSize: 12,
                             color: EcoColors.onPrimary.withOpacity(0.8),
@@ -207,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // light/beige background below header
+                // Light/beige background below header
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
@@ -222,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            // Caja con Progreso Logro Actual
+            // Current achievement progress box
             Positioned(
               top: 120,
               left: 20,
@@ -236,23 +278,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: const Center(
                   child: Text(
-                    'Progreso logro actual',
+                    'Current Achievement Progress',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
             ),
 
-            // Row entre las dos cajas: círculo + cuadrado
+            // Row between boxes: circle + square
             Positioned(
               top:
-                  335, // posición entre la caja superior (bottom ~380) y la inferior (top 500)
+                  335, // Position between upper box (bottom ~380) and lower box (top 500)
               left: 40,
               right: 40,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Circulo
+                  // Circle
                   Expanded(
                     child: Container(
                       height: 120,
@@ -267,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: const Center(
                         child: Text(
-                          'Progreso al\nsiguiente\nnivel',
+                          'Progress to\nNext\nLevel',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -278,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Cuadrado
+                  // Square
                   Expanded(
                     child: Container(
                       height: 120,
@@ -293,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: const Center(
                         child: Text(
-                          'Puntos',
+                          'Points',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -306,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Caja con Reporte Actual
+            // Current report box
             Positioned(
               top: 500,
               left: 20,
@@ -320,14 +362,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: const Center(
                   child: Text(
-                    'Reporte actual',
+                    'Current Report',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
             ),
 
-            // Aquí puedes añadir más contenido bajo la tarjeta (ej. filas de widgets)
+            // Here you can add more content below the card (e.g. widget rows)
           ],
         ),
       ),

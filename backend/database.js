@@ -25,16 +25,16 @@ class DatabaseManager {
   createTables() {
     const createReportsTable = `
       CREATE TABLE IF NOT EXISTS reports (
-        id TEXT PRIMARY KEY,
-        timestamp TEXT NOT NULL,
-        latitude REAL NOT NULL,
-        longitude REAL NOT NULL,
-        accuracy REAL,
-        classification TEXT NOT NULL,
-        device_info TEXT,
-        image_path TEXT,
-        status TEXT DEFAULT 'received',
-        created_at TEXT NOT NULL
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        image_path TEXT NOT NULL,
+        location_lat REAL NOT NULL,
+        location_lng REAL NOT NULL,
+        address TEXT,
+        waste_type TEXT NOT NULL,
+        severity TEXT NOT NULL,
+        description TEXT,
+        reporter_name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
@@ -45,21 +45,19 @@ class DatabaseManager {
   // Insertar nuevo reporte
   insertReport(report) {
     const sql = `
-      INSERT INTO reports (id, timestamp, latitude, longitude, accuracy, classification, device_info, image_path, status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO reports (image_path, location_lat, location_lng, address, waste_type, severity, description, reporter_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const params = [
-      report.id,
-      report.timestamp,
+      report.image_path || null,
       report.location.latitude,
       report.location.longitude,
-      report.location.accuracy,
-      report.classification,
-      report.device_info,
-      report.image_path,
-      report.status,
-      report.created_at
+      report.address || null,
+      report.classification || 'plastico',
+      report.severity || 'medio',
+      report.description || null,
+      report.reporter_name || 'Usuario Móvil'
     ];
 
     try {

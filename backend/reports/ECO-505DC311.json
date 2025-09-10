@@ -1,0 +1,14 @@
+{
+  "id": "ECO-505DC311",
+  "timestamp": "2025-09-08T17:56:49.191845",
+  "location": {
+    "latitude": 6.230833,
+    "longitude": -75.590553,
+    "accuracy": 10
+  },
+  "classification": "Tetrapak (envase de jugo)",
+  "device_info": "android",
+  "image_path": "/images/ECO-505DC311.jpeg",
+  "status": "received",
+  "created_at": "2025-09-08T22:56:49.344Z"
+}

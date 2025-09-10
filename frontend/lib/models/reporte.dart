@@ -1,4 +1,4 @@
-// Se crea un modelo para los reportes 
+// Se crea un modelo para los reportes
 
 class Reporte {
   final String id;

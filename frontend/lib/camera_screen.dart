@@ -1,10 +1,18 @@
+// Dart imports:
 import 'dart:io';
 import 'dart:math';
-import 'package:camera/camera.dart';
+
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
-import 'report_service.dart';
+
+// Project imports:
 import 'colors.dart';
+import 'location_service.dart';
+import 'report_service.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -25,8 +33,12 @@ class _CameraScreenState extends State<CameraScreen> {
     _initializeCamera();
   }
 
+  /// Initializes the camera with optimal settings.
+  ///
+  /// Sets up camera controller with high resolution preset and configures
+  /// the appropriate camera (rear by default, front if toggled).
   Future<void> _initializeCamera() async {
-    print('🎥 INICIANDO CONFIGURACIÓN DE CÁMARA...');
+    debugPrint('🎥 Starting camera configuration...');
 
     setState(() {
       _isLoading = true;
@@ -34,7 +46,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
     try {
       _cameras = await availableCameras();
-      print('📱 Cámaras disponibles: ${_cameras!.length}');
+      debugPrint('📱 Available cameras: ${_cameras!.length}');
 
       if (_cameras!.isNotEmpty) {
         final selectedCamera = _isRearCameraSelected
@@ -55,9 +67,9 @@ class _CameraScreenState extends State<CameraScreen> {
 
         await _cameraController!.initialize();
 
-        print('✅ CÁMARA INICIALIZADA CORRECTAMENTE');
-        print('📸 Resolución: ${_cameraController!.value.previewSize}');
-        print('🔍 Cámara seleccionada: ${selectedCamera.name}');
+        debugPrint('✅ Camera initialized successfully');
+        debugPrint('📸 Resolution: ${_cameraController!.value.previewSize}');
+        debugPrint('🔍 Selected camera: ${selectedCamera.name}');
 
         if (mounted) {
           setState(() {
@@ -66,7 +78,7 @@ class _CameraScreenState extends State<CameraScreen> {
         }
       }
     } catch (e) {
-      print('💥 ERROR AL INICIALIZAR CÁMARA: $e');
+      debugPrint('💥 Error initializing camera: $e');
       setState(() {
         _isLoading = false;
       });
@@ -79,33 +91,41 @@ class _CameraScreenState extends State<CameraScreen> {
     super.dispose();
   }
 
+  /// Captures a photo and processes it for waste classification.
+  ///
+  /// This method performs the complete photo capture workflow:
+  /// 1. Takes a photo using the camera controller
+  /// 2. Saves it to temporary directory
+  /// 3. Analyzes the image for waste classification
+  /// 4. Gets location information
+  /// 5. Navigates to confirmation screen
   Future<void> _takePicture() async {
-    print('🚀 MÉTODO _takePicture() INICIADO');
+    debugPrint('🚀 Starting _takePicture() method');
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      print('❌ CAMERA NO INICIALIZADA - RETORNANDO');
+      debugPrint('❌ Camera not initialized - returning');
       return;
     }
 
     try {
-      print('📸 CAPTURANDO FOTO...');
+      debugPrint('📸 Capturing photo...');
       final XFile picture = await _cameraController!.takePicture();
 
-      print('💾 GUARDANDO FOTO EN DIRECTORIO TEMPORAL...');
+      debugPrint('💾 Saving photo to temporary directory...');
       final directory = await getTemporaryDirectory();
       final imagePath =
           '${directory.path}/photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
       await picture.saveTo(imagePath);
 
-      print('✅ FOTO GUARDADA EN: $imagePath');
+      debugPrint('✅ Photo saved at: $imagePath');
 
-      // EJECUTAR ANÁLISIS INMEDIATAMENTE
-      print('🔍 INICIANDO ANÁLISIS INMEDIATO...');
+      // Execute analysis immediately
+      debugPrint('🔍 Starting immediate analysis...');
       final analysisResult = await _performImageAnalysis();
 
-      print('📍 OBTENIENDO UBICACIÓN...');
+      debugPrint('📍 Getting location...');
       final locationResult = await _getLocationInfo();
 
-      print('🧾 NAVEGANDO A PANTALLA DE CONFIRMACIÓN...');
+      debugPrint('🧾 Navigating to confirmation screen...');
       if (mounted) {
         Navigator.push(
           context,
@@ -119,14 +139,17 @@ class _CameraScreenState extends State<CameraScreen> {
         );
       }
     } catch (e) {
-      print('💥 ERROR EN _takePicture(): $e');
+      debugPrint('💥 Error in _takePicture(): $e');
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error al tomar la foto: $e')));
+      ).showSnackBar(SnackBar(content: Text('Error taking photo: $e')));
     }
   }
 
-  // Lista de residuos para clasificación aleatoria
+  /// List of waste classifications for random analysis simulation.
+  ///
+  /// These classifications represent different types of waste that can be
+  /// identified by the image analysis system.
   final List<String> _wasteClassifications = [
     'Botella de plástico PET',
     'Lata de aluminio',
@@ -142,44 +165,73 @@ class _CameraScreenState extends State<CameraScreen> {
 
   final Random _random = Random();
 
+  /// Performs image analysis simulation.
+  ///
+  /// Simulates AI processing by returning a random waste classification
+  /// from the predefined list. In a real implementation, this would
+  /// use machine learning models to analyze the captured image.
   Future<String> _performImageAnalysis() async {
-    print('=== INICIANDO ANÁLISIS DE IMAGEN ===');
+    debugPrint('=== Starting image analysis ===');
 
-    // Simular procesamiento de IA
+    // Simulate AI processing
     await Future.delayed(const Duration(seconds: 1));
 
-    // Seleccionar clasificación aleatoria
+    // Select random classification
     final randomIndex = _random.nextInt(_wasteClassifications.length);
     final selectedClassification = _wasteClassifications[randomIndex];
 
-    print('=== RANDOM CLASSIFICATION DEBUG ===');
-    print('Lista total de residuos: ${_wasteClassifications.length}');
-    print('Índice aleatorio seleccionado: $randomIndex');
-    print('Clasificación seleccionada: $selectedClassification');
-    print('===================================');
+    debugPrint('=== Random classification debug ===');
+    debugPrint('Total waste types: ${_wasteClassifications.length}');
+    debugPrint('Selected random index: $randomIndex');
+    debugPrint('Selected classification: $selectedClassification');
+    debugPrint('===================================');
 
     return selectedClassification;
   }
 
+  /// Gets location information for the captured photo.
+  ///
+  /// Uses LocationService to get current GPS coordinates with high accuracy.
+  /// Falls back to default Medellín location if GPS is unavailable.
   Future<String> _getLocationInfo() async {
-    print('📍 OBTENIENDO INFORMACIÓN DE UBICACIÓN...');
+    debugPrint('📍 Getting location information...');
 
-    // Simular obtención de ubicación
-    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      // Get real location using LocationService
+      debugPrint('🔍 Calling LocationService.getCurrentLocation()...');
+      debugPrint('🔍 Before calling getCurrentLocation()');
+      final locationResult = await LocationService.getCurrentLocation();
+      debugPrint('🔍 After calling getCurrentLocation()');
+      debugPrint(
+        '📱 LocationService responded: success=${locationResult.success}',
+      );
 
-    // Ubicación simulada realista para Medellín
-    final List<String> locations = [
-      '6.244203, -75.581212', // Medellín Centro
-      '6.230833, -75.590553', // El Poblado
-      '6.267417, -75.568389', // Universidad Nacional
-      '6.208679, -75.568389', // Envigado
-      '6.164217, -75.603889', // Sabaneta
-    ];
-
-    final randomLocation = locations[_random.nextInt(locations.length)];
-    print('📍 Ubicación obtenida: $randomLocation');
-
-    return randomLocation;
+      if (locationResult.success &&
+          locationResult.latitude != null &&
+          locationResult.longitude != null) {
+        final locationString =
+            '${locationResult.latitude}, ${locationResult.longitude}';
+        debugPrint('📍 Real location obtained: $locationString');
+        debugPrint('📍 Accuracy: ±${locationResult.accuracy}m');
+        return locationString;
+      } else {
+        debugPrint(
+          '⚠️ Could not get real location: ${locationResult.errorMessage}',
+        );
+        debugPrint('🔄 isLowAccuracy: ${locationResult.isLowAccuracy}');
+        // Fallback to default Medellín Centro location
+        const fallbackLocation = '6.244203, -75.581212';
+        debugPrint('📍 Using default location: $fallbackLocation');
+        return fallbackLocation;
+      }
+    } catch (e) {
+      debugPrint('💥 Error getting location: $e');
+      debugPrint('💥 Stack trace: ${StackTrace.current}');
+      // Fallback to default Medellín Centro location
+      const fallbackLocation = '6.244203, -75.581212';
+      debugPrint('📍 Using default location due to error: $fallbackLocation');
+      return fallbackLocation;
+    }
   }
 
   @override
@@ -194,7 +246,7 @@ class _CameraScreenState extends State<CameraScreen> {
               CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 20),
               Text(
-                'Inicializando cámara...',
+                'Initializing camera...',
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ],
@@ -208,7 +260,7 @@ class _CameraScreenState extends State<CameraScreen> {
         backgroundColor: Colors.black,
         body: Center(
           child: Text(
-            'Error al inicializar la cámara',
+            'Error initializing camera',
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
@@ -219,10 +271,10 @@ class _CameraScreenState extends State<CameraScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Vista previa de la cámara
+          // Camera preview
           Positioned.fill(child: CameraPreview(_cameraController!)),
 
-          // Overlay con información
+          // Information overlay
           Positioned(
             top: 50,
             left: 20,
@@ -245,7 +297,7 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Apunta hacia el residuo y toca el botón para clasificarlo',
+                    'Point towards the waste and tap the button to classify it',
                     style: TextStyle(color: Colors.white70, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
@@ -254,14 +306,14 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
           ),
 
-          // Controles inferiores
+          // Bottom controls
           Positioned(
             bottom: 50,
             left: 0,
             right: 0,
             child: Column(
               children: [
-                // Botón de captura
+                // Capture button
                 Center(
                   child: GestureDetector(
                     onTap: _takePicture,
@@ -294,7 +346,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
                 const SizedBox(height: 20),
 
-                // Botón de cambio de cámara
+                // Camera switch button
                 if (_cameras != null && _cameras!.length > 1)
                   Container(
                     decoration: BoxDecoration(
@@ -325,10 +377,18 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 }
 
-// Pantalla de confirmación de foto con análisis ya completado
+/// Screen for confirming photo capture and waste classification results.
+///
+/// Displays the captured photo along with analysis results and location
+/// information. Allows user to confirm and submit the environmental report.
 class PhotoConfirmationScreen extends StatefulWidget {
+  /// Path to the captured image file.
   final String imagePath;
+
+  /// Result of the waste classification analysis.
   final String analysisResult;
+
+  /// Location information string in "lat, lng" format.
   final String locationInfo;
 
   const PhotoConfirmationScreen({
@@ -349,23 +409,27 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
   @override
   void initState() {
     super.initState();
-    print('🖼️ PhotoConfirmationScreen inicializada');
-    print('📊 Resultado de análisis: ${widget.analysisResult}');
-    print('📍 Ubicación: ${widget.locationInfo}');
+    debugPrint('🖼️ PhotoConfirmationScreen initialized');
+    debugPrint('📊 Analysis result: ${widget.analysisResult}');
+    debugPrint('📍 Location: ${widget.locationInfo}');
   }
 
+  /// Registers the environmental report with the backend server.
+  ///
+  /// Sends the captured image, classification result, and location data
+  /// to the backend API for storage and processing.
   Future<void> _registerReport() async {
-    print('📝 INICIANDO REGISTRO DE REPORTE...');
+    debugPrint('📝 Starting report registration...');
 
     setState(() {
       _isRegistering = true;
     });
 
     try {
-      // Enviar reporte real al backend
-      print('📤 ENVIANDO REPORTE AL SERVIDOR...');
+      // Send real report to backend
+      debugPrint('📤 Sending report to server...');
 
-      // Parsear la ubicación desde el string "lat, lon"
+      // Parse location from string "lat, lon"
       final locationParts = widget.locationInfo.split(', ');
       final latitude = double.parse(locationParts[0]);
       final longitude = double.parse(locationParts[1]);
@@ -374,22 +438,22 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
         imageFile: File(widget.imagePath),
         latitude: latitude,
         longitude: longitude,
-        accuracy: 10.0, // Accuracy por defecto
+        accuracy: 10.0, // Default accuracy
         classification: widget.analysisResult,
       );
 
       if (result.success) {
         final reportCode = result.reportCode!;
-        print('✅ REPORTE ENVIADO EXITOSAMENTE CON CÓDIGO: $reportCode');
+        debugPrint('✅ Report sent successfully with code: $reportCode');
       } else {
-        print('❌ ERROR AL ENVIAR REPORTE: ${result.message}');
-        throw Exception('Error al enviar reporte: ${result.message}');
+        debugPrint('❌ Error sending report: ${result.message}');
+        throw Exception('Error sending report: ${result.message}');
       }
 
       final reportCode = result.reportCode!;
 
       if (mounted) {
-        // Mostrar pantalla de éxito
+        // Show success screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -402,7 +466,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
         );
       }
     } catch (e) {
-      print('💥 ERROR AL REGISTRAR REPORTE: $e');
+      debugPrint('💥 Error registering report: $e');
       setState(() {
         _isRegistering = false;
       });
@@ -410,7 +474,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al registrar reporte: $e'),
+            content: Text('Error registering report: $e'),
             backgroundColor: EcoColors.error,
           ),
         );
@@ -450,7 +514,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
             ),
           ),
 
-          // Información del análisis
+          // Analysis information
           Expanded(
             flex: 2,
             child: Container(
@@ -464,7 +528,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Resultado del análisis
+                  // Analysis result
                   Row(
                     children: [
                       const Icon(
@@ -474,7 +538,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'Clasificación:',
+                        'Classification:',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -503,7 +567,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
 
                   const SizedBox(height: 20),
 
-                  // Ubicación
+                  // Location
                   Row(
                     children: [
                       const Icon(
@@ -513,7 +577,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'Ubicación:',
+                        'Location:',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -540,7 +604,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
             ),
           ),
 
-          // Botones de acción
+          // Action buttons
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -561,7 +625,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                       ),
                     ),
                     child: const Text(
-                      'Volver a tomar',
+                      'Take again',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -573,7 +637,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
 
                 const SizedBox(width: 16),
 
-                // Botón registrar
+                // Register button
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _isRegistering ? null : _registerReport,
@@ -596,7 +660,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                             ),
                           )
                         : const Text(
-                            'Registrar',
+                            'Register',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -614,10 +678,18 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
   }
 }
 
-// Pantalla de éxito del reporte
+/// Screen displaying successful report submission.
+///
+/// Shows confirmation details including report code, waste type,
+/// and location information after successful submission to backend.
 class ReportSuccessScreen extends StatelessWidget {
+  /// Unique identifier for the submitted report.
   final String reportCode;
+
+  /// Type of waste that was classified.
   final String wasteType;
+
+  /// Location where the report was created.
   final String location;
 
   const ReportSuccessScreen({
@@ -650,9 +722,9 @@ class ReportSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // Título
+              // Title
               const Text(
-                '¡Reporte Enviado Exitosamente!',
+                'Report Sent Successfully!',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -663,16 +735,16 @@ class ReportSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              // Subtítulo
+              // Subtitle
               const Text(
-                'Reporte recibido exitosamente',
+                'Report received successfully',
                 style: TextStyle(color: Colors.white70, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
 
               const SizedBox(height: 30),
 
-              // Información del reporte
+              // Report information
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -682,7 +754,7 @@ class ReportSuccessScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Código de reporte
+                    // Report code
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -704,7 +776,7 @@ class ReportSuccessScreen extends StatelessWidget {
 
                     const SizedBox(height: 20),
 
-                    // Detalles
+                    // Details
                     Row(
                       children: [
                         const Icon(
@@ -714,7 +786,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'Ubicación: ',
+                          'Location: ',
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         Expanded(
@@ -740,7 +812,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'Clasificación: ',
+                          'Classification: ',
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         Expanded(
@@ -760,9 +832,9 @@ class ReportSuccessScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // Mensaje adicional
+              // Additional message
               const Text(
-                'Guarda el código de reporte para futuras consultas.',
+                'Save the report code for future reference.',
                 style: TextStyle(color: Colors.white60, fontSize: 14),
                 textAlign: TextAlign.center,
               ),
@@ -814,7 +886,7 @@ class ReportSuccessScreen extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        'Finalizar',
+                        'Finish',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,

@@ -1,0 +1,14 @@
+{
+  "id": "ECO-795912FF",
+  "timestamp": "2025-09-06T18:47:59.684006",
+  "location": {
+    "latitude": 6.164217,
+    "longitude": -75.603889,
+    "accuracy": 10
+  },
+  "classification": "Bolsa plástica",
+  "device_info": "android",
+  "image_path": "/images/ECO-795912FF.jpeg",
+  "status": "received",
+  "created_at": "2025-09-06T23:47:59.938Z"
+}

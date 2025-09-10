@@ -1,0 +1,22 @@
+# EcoTrack - Import Sorter Configuration
+# Automatically organizes and formats import statements
+# Run with: flutter packages pub run import_sorter:main
+
+# Sorting configuration
+ignored_files: # Ignored files and directories
+  - \/lib\/.*\.g\.dart$
+  - \/lib\/.*\.freezed\.dart$
+  - \/lib\/generated_plugin_registrant\.dart$
+
+# Import ordering rules
+# dart: imports come first
+# package: imports come second  
+# relative imports come last
+comments: true # Preserve comments
+remove_unused_imports: true # Remove unused imports
+
+# Emojis for different import sections
+dart_imports_emoji: 🎯 # Dart core imports
+flutter_imports_emoji: 📱 # Flutter framework imports
+package_imports_emoji: 📦 # Third-party package imports
+project_imports_emoji: 🏠 # Project relative imports
