@@ -50,8 +50,7 @@ class EcoTrackApp extends StatelessWidget {
 final List<Reporte> reportesEjemplo = [
   Reporte(
     id: '1',
-    fotoUrl:
-        'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
+    fotoUrl: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Calle 1 #2-3',
     clasificacion: 'Plástico',
     estado: 'Pendiente',
@@ -62,8 +61,7 @@ final List<Reporte> reportesEjemplo = [
   ),
   Reporte(
     id: '2',
-    fotoUrl:
-        'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
+    fotoUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Carrera 45 #10-20',
     clasificacion: 'Vidrio',
     estado: 'Completado',
@@ -74,16 +72,6 @@ final List<Reporte> reportesEjemplo = [
   ),
   // More example reports can be added here
 ];
-
-/// Main screen widget with bottom navigation.
-///
-/// This widget provides the primary navigation structure for the app,
-/// featuring a bottom navigation bar with tabs for different sections:
-/// - Home: Dashboard and progress tracking
-/// - Statistics: Usage analytics and reports
-/// - Camera: Quick access to camera functionality
-/// - Map: Location-based features
-/// - Profile: User settings and information
 class MainScreen extends StatefulWidget {
   /// Creates the main screen with navigation.
   const MainScreen({super.key});

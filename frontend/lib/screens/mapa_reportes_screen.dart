@@ -26,7 +26,6 @@ class MapaReportesScreen extends StatefulWidget {
   /// The [reportes] parameter contains the list of environmental reports
   /// to be displayed. If empty, an appropriate empty state will be shown.
   const MapaReportesScreen({super.key, required this.reportes});
-
   @override
   State<MapaReportesScreen> createState() => _MapaReportesScreenState();
 }
