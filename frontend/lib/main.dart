@@ -39,13 +39,14 @@ class EcoTrackApp extends StatelessWidget {
 }
 
 /// Sample data for testing the reports functionality.
-/// 
+///
 /// This list contains example reports with different types of waste,
 /// locations, and status for development and testing purposes.
 final List<Reporte> reportesEjemplo = [
   Reporte(
     id: '1',
-    fotoUrl: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
+    fotoUrl:
+        'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Calle 1 #2-3',
     clasificacion: 'Plástico',
     estado: 'Pendiente',
@@ -56,7 +57,8 @@ final List<Reporte> reportesEjemplo = [
   ),
   Reporte(
     id: '2',
-    fotoUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
+    fotoUrl:
+        'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Carrera 45 #10-20',
     clasificacion: 'Vidrio',
     estado: 'Completado',

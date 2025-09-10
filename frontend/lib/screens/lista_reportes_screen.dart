@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../models/reporte.dart';
+import 'package:eco_track/colors.dart';
 
 class ListaReportesScreen extends StatefulWidget {
   final List<Reporte> reportes;
@@ -33,25 +34,31 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
             DropdownButton<String>(
               hint: const Text('Estado'),
               value: estado,
-              items: ['Pendiente', 'En proceso', 'Completado']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+              items: [
+                'Pendiente',
+                'En proceso',
+                'Completado',
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (v) => setState(() => estado = v),
             ),
             DropdownButton<String>(
               hint: const Text('Prioridad'),
               value: prioridad,
-              items: ['Alta', 'Media', 'Baja']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+              items: [
+                'Alta',
+                'Media',
+                'Baja',
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (v) => setState(() => prioridad = v),
             ),
             DropdownButton<String>(
               hint: const Text('Tipo'),
               value: tipoResiduo,
-              items: ['Plástico', 'Orgánico', 'Vidrio']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+              items: [
+                'Plástico',
+                'Orgánico',
+                'Vidrio',
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (v) => setState(() => tipoResiduo = v),
             ),
           ],
@@ -63,9 +70,16 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
               final r = filtrados[i];
               return Card(
                 child: ListTile(
-                  leading: Image.network(r.fotoUrl, width: 50, height: 50, fit: BoxFit.cover),
+                  leading: Image.network(
+                    r.fotoUrl,
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
+                  ),
                   title: Text(r.clasificacion),
-                  subtitle: Text('${r.ubicacion}\n${r.estado} - ${r.prioridad} - ${r.tipoResiduo}'),
+                  subtitle: Text(
+                    '${r.ubicacion}\n${r.estado} - ${r.prioridad} - ${r.tipoResiduo}',
+                  ),
                 ),
               );
             },
