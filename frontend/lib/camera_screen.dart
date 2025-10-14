@@ -8,11 +8,13 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Project imports:
 import 'colors.dart';
 import 'location_service.dart';
-import 'report_service.dart';
+import 'services/firestore_service.dart';
+import 'models/reporte.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -61,7 +63,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
         _cameraController = CameraController(
           selectedCamera,
-          ResolutionPreset.ultraHigh,
+          // Lowered from ultraHigh to high to reduce buffer pressure and improve performance
+          ResolutionPreset.high,
           enableAudio: false,
         );
 
@@ -125,7 +128,18 @@ class _CameraScreenState extends State<CameraScreen> {
       debugPrint('📍 Getting location...');
       final locationResult = await _getLocationInfo();
 
-      debugPrint('🧾 Navigating to confirmation screen...');
+      debugPrint('🧾 Preparing to navigate to confirmation screen...');
+
+      // Dispose camera before navigating to reduce ImageReader buffer pressure
+      try {
+        await _cameraController?.dispose();
+        _cameraController = null;
+        debugPrint('🧹 Camera disposed before navigation');
+      } catch (e) {
+        debugPrint('⚠️ Could not dispose camera before navigation: $e');
+      }
+
+      debugPrint('🧭 Navigating to confirmation screen...');
       if (mounted) {
         Navigator.push(
           context,
@@ -136,7 +150,15 @@ class _CameraScreenState extends State<CameraScreen> {
               locationInfo: locationResult,
             ),
           ),
-        );
+        ).then((_) async {
+          // When coming back to the camera screen, re-initialize the camera
+          if (mounted &&
+              (_cameraController == null ||
+                  !_cameraController!.value.isInitialized)) {
+            setState(() => _isLoading = true);
+            await _initializeCamera();
+          }
+        });
       }
     } catch (e) {
       debugPrint('💥 Error in _takePicture(): $e');
@@ -192,16 +214,14 @@ class _CameraScreenState extends State<CameraScreen> {
   /// Gets location information for the captured photo.
   ///
   /// Uses LocationService to get current GPS coordinates with high accuracy.
-  /// Falls back to default Medellín location if GPS is unavailable.
+  /// Shows user dialog for low accuracy or provides manual entry option.
   Future<String> _getLocationInfo() async {
     debugPrint('📍 Getting location information...');
 
     try {
       // Get real location using LocationService
       debugPrint('🔍 Calling LocationService.getCurrentLocation()...');
-      debugPrint('🔍 Before calling getCurrentLocation()');
       final locationResult = await LocationService.getCurrentLocation();
-      debugPrint('🔍 After calling getCurrentLocation()');
       debugPrint(
         '📱 LocationService responded: success=${locationResult.success}',
       );
@@ -209,29 +229,127 @@ class _CameraScreenState extends State<CameraScreen> {
       if (locationResult.success &&
           locationResult.latitude != null &&
           locationResult.longitude != null) {
-        final locationString =
-            '${locationResult.latitude}, ${locationResult.longitude}';
-        debugPrint('📍 Real location obtained: $locationString');
-        debugPrint('📍 Accuracy: ±${locationResult.accuracy}m');
-        return locationString;
+        // Check if accuracy is acceptable
+        if (locationResult.isLowAccuracy && mounted) {
+          // Show dialog for low accuracy
+          final shouldProceed = await _showLowAccuracyDialog(
+            locationResult.latitude!,
+            locationResult.longitude!,
+            locationResult.accuracy!,
+            locationResult.errorMessage!,
+          );
+
+          if (shouldProceed) {
+            final locationString =
+                '${locationResult.latitude}, ${locationResult.longitude}';
+            debugPrint(
+              '📍 User accepted low accuracy location: $locationString',
+            );
+            return locationString;
+          } else {
+            // User wants manual entry
+            final manualResult = await _showManualLocationDialog();
+            if (manualResult != null) {
+              final locationString =
+                  '${manualResult.latitude}, ${manualResult.longitude}';
+              debugPrint('📍 Manual location entered: $locationString');
+              return locationString;
+            }
+          }
+        } else {
+          // Good accuracy, use the location
+          final locationString =
+              '${locationResult.latitude}, ${locationResult.longitude}';
+          debugPrint('📍 High accuracy location obtained: $locationString');
+          debugPrint('📍 Accuracy: ±${locationResult.accuracy}m');
+          return locationString;
+        }
       } else {
-        debugPrint(
-          '⚠️ Could not get real location: ${locationResult.errorMessage}',
-        );
-        debugPrint('🔄 isLowAccuracy: ${locationResult.isLowAccuracy}');
-        // Fallback to default Medellín Centro location
-        const fallbackLocation = '6.244203, -75.581212';
-        debugPrint('📍 Using default location: $fallbackLocation');
-        return fallbackLocation;
+        debugPrint('⚠️ Could not get location: ${locationResult.errorMessage}');
+
+        // Show manual location entry dialog
+        if (mounted) {
+          final manualResult = await _showManualLocationDialog();
+          if (manualResult != null) {
+            final locationString =
+                '${manualResult.latitude}, ${manualResult.longitude}';
+            debugPrint(
+              '📍 Manual location entered after GPS failure: $locationString',
+            );
+            return locationString;
+          }
+        }
       }
+
+      // Final fallback to default Medellín Centro location
+      const fallbackLocation = '6.244203, -75.581212';
+      debugPrint('📍 Using default fallback location: $fallbackLocation');
+      return fallbackLocation;
     } catch (e) {
       debugPrint('💥 Error getting location: $e');
-      debugPrint('💥 Stack trace: ${StackTrace.current}');
-      // Fallback to default Medellín Centro location
+
+      // Show manual location entry as last resort
+      if (mounted) {
+        final manualResult = await _showManualLocationDialog();
+        if (manualResult != null) {
+          final locationString =
+              '${manualResult.latitude}, ${manualResult.longitude}';
+          debugPrint('📍 Manual location after exception: $locationString');
+          return locationString;
+        }
+      }
+
+      // Ultimate fallback
       const fallbackLocation = '6.244203, -75.581212';
-      debugPrint('📍 Using default location due to error: $fallbackLocation');
+      debugPrint('📍 Using ultimate fallback location: $fallbackLocation');
       return fallbackLocation;
     }
+  }
+
+  /// Shows dialog for low accuracy GPS reading
+  Future<bool> _showLowAccuracyDialog(
+    double latitude,
+    double longitude,
+    double accuracy,
+    String message,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Low Location Accuracy'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(message),
+                const SizedBox(height: 16),
+                Text(
+                  'Current location: ${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}',
+                ),
+                Text('Accuracy: ±${accuracy.toStringAsFixed(1)}m'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Enter Manually'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Use This Location'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  /// Shows manual location entry dialog
+  Future<LocationResult?> _showManualLocationDialog() async {
+    return await showDialog<LocationResult?>(
+      context: context,
+      builder: (context) => const ManualLocationDialog(),
+    );
   }
 
   @override
@@ -426,31 +544,83 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
     });
 
     try {
-      // Send real report to backend
-      debugPrint('📤 Sending report to server...');
+      // New path: Save report directly to Firestore (Storage + Firestore)
+      debugPrint('📤 Uploading image and creating report in Firestore...');
 
       // Parse location from string "lat, lon"
-      final locationParts = widget.locationInfo.split(', ');
-      final latitude = double.parse(locationParts[0]);
-      final longitude = double.parse(locationParts[1]);
+      final locationParts = widget.locationInfo.split(',');
+      final latitude = double.parse(locationParts[0].trim());
+      final longitude = double.parse(locationParts[1].trim());
 
-      final result = await ReportService.submitReport(
-        imageFile: File(widget.imagePath),
-        latitude: latitude,
-        longitude: longitude,
-        accuracy: 10.0, // Default accuracy
-        classification: widget.analysisResult,
-      );
+      // Generate a Firestore document ID for the report
+      final reportId = FirebaseFirestore.instance
+          .collection('reports')
+          .doc()
+          .id;
 
-      if (result.success) {
-        final reportCode = result.reportCode!;
-        debugPrint('✅ Report sent successfully with code: $reportCode');
-      } else {
-        debugPrint('❌ Error sending report: ${result.message}');
-        throw Exception('Error sending report: ${result.message}');
+      // Fallback path: create a small base64 thumbnail instead of using Storage
+      String base64Thumb;
+      try {
+        base64Thumb = await FirestoreService().createBase64Thumbnail(
+          File(widget.imagePath),
+          maxSide: 256,
+          quality: 60,
+        );
+      } catch (e) {
+        debugPrint(
+          '⚠️ Thumbnail generation failed at 256/60, retrying smaller: $e',
+        );
+        base64Thumb = await FirestoreService().createBase64Thumbnail(
+          File(widget.imagePath),
+          maxSide: 192,
+          quality: 55,
+        );
       }
 
-      final reportCode = result.reportCode!;
+      // Build report model
+      final report = Reporte.create(
+        id: reportId,
+        fotoUrl: '',
+        fotoBase64: base64Thumb,
+        ubicacion: widget.locationInfo,
+        clasificacion: widget.analysisResult,
+        tipoResiduo: widget.analysisResult,
+        lat: latitude,
+        lng: longitude,
+        accuracy: 10.0,
+        deviceInfo: Platform.operatingSystem,
+      );
+
+      // HU-21: Pre-validation for nearby duplicate reports (50m radius)
+      final nearby = await FirestoreService().findNearbyReports(
+        lat: latitude,
+        lng: longitude,
+        radiusMeters: 50,
+      );
+
+      int duplicatePenaltyPercent = 0;
+      if (nearby.isNotEmpty) {
+        // Suggest sending with a small penalty or cancel
+        duplicatePenaltyPercent =
+            await _showDuplicateDialog(nearby.length) ?? 0;
+        if (duplicatePenaltyPercent < 0) {
+          // User chose to cancel
+          setState(() => _isRegistering = false);
+          return;
+        }
+      }
+
+      // Create report document in Firestore (with optional penalty)
+      final createdId = await FirestoreService().createReport(
+        report,
+        duplicatePenaltyPercent: duplicatePenaltyPercent,
+      );
+      if (createdId == null) {
+        throw Exception('Failed to create report in Firestore');
+      }
+
+      final reportCode = createdId;
+      debugPrint('✅ Report created in Firestore with code: $reportCode');
 
       if (mounted) {
         // Show success screen
@@ -480,6 +650,37 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
         );
       }
     }
+  }
+
+  /// Shows a dialog when similar reports are found nearby and lets the user decide
+  /// returns: percentage penalty to apply (e.g., 20), or 0 to proceed full points, or -1 to cancel
+  Future<int?> _showDuplicateDialog(int count) async {
+    return showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Reporte cercano existente'),
+          content: Text(
+            'Hemos encontrado $count reporte(s) cerca de tu ubicación (≈50m).\n\n'
+            'Puedes continuar, pero tus puntos podrían ser menores si es un duplicado.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(-1),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(0),
+              child: const Text('Enviar sin penalización'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(20),
+              child: const Text('Enviar con -20% puntos'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

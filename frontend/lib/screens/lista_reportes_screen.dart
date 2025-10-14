@@ -19,11 +19,13 @@ class ListaReportesScreen extends StatefulWidget {
 /// location, and current status information.
 
 // Flutter imports:
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 // Project imports:
 import '../colors.dart';
 import '../models/reporte.dart';
+import '../services/report_status_service.dart';
 
 /// Reports list screen widget with filtering capabilities.
 ///
@@ -153,10 +155,22 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
   /// Currently selected waste type filter (null means no filter applied).
   String? tipoResiduo;
 
+  /// Local copy of reports that can be modified
+  late List<Reporte> _reportes;
+
+  /// Set to track reports currently being updated
+  final Set<String> _updatingReports = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _reportes = List<Reporte>.from(widget.reportes);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Apply filters to the reports list
-    final filteredReports = widget.reportes.where((reporte) {
+    // Apply filters to the reports list (using local copy)
+    final filteredReports = _reportes.where((reporte) {
       if (estado != null && reporte.estado != estado) return false;
       if (prioridad != null && reporte.prioridad != prioridad) return false;
       if (tipoResiduo != null && reporte.tipoResiduo != tipoResiduo)
@@ -379,36 +393,7 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
               child: SizedBox(
                 width: 60,
                 height: 60,
-                child: Image.network(
-                  reporte.fotoUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: EcoColors.grey100,
-                      child: Icon(
-                        Icons.image_not_supported,
-                        color: EcoColors.secondary,
-                        size: 30,
-                      ),
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: EcoColors.grey100,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                          strokeWidth: 2,
-                          color: EcoColors.secondary,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                child: _buildReportImage(reporte),
               ),
             ),
             const SizedBox(width: 12),
@@ -435,14 +420,13 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  // Status chips row
+                  // Status update section
                   Row(
                     children: [
-                      _buildStatusChip(
-                        reporte.estado,
-                        _getStatusColor(reporte.estado),
-                      ),
+                      // Status dropdown
+                      Expanded(flex: 2, child: _buildStatusDropdown(reporte)),
                       const SizedBox(width: 8),
+                      // Priority chip
                       _buildStatusChip(
                         reporte.prioridad,
                         _getPriorityColor(reporte.prioridad),
@@ -456,6 +440,58 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
         ),
       ),
     );
+  }
+
+  /// Build image widget supporting URL or base64 data URLs
+  Widget _buildReportImage(Reporte reporte) {
+    final placeholder = Container(
+      color: EcoColors.grey100,
+      child: Icon(
+        Icons.image_not_supported,
+        color: EcoColors.secondary,
+        size: 30,
+      ),
+    );
+
+    if (reporte.fotoUrl.isNotEmpty) {
+      return Image.network(
+        reporte.fotoUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => placeholder,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            color: EcoColors.grey100,
+            child: Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+                color: EcoColors.secondary,
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (reporte.fotoBase64 != null && reporte.fotoBase64!.isNotEmpty) {
+      try {
+        final dataUrl = reporte.fotoBase64!;
+        final commaIndex = dataUrl.indexOf(',');
+        final base64Part = commaIndex >= 0
+            ? dataUrl.substring(commaIndex + 1)
+            : dataUrl;
+        final bytes = base64Decode(base64Part);
+        return Image.memory(bytes, fit: BoxFit.cover);
+      } catch (_) {
+        return placeholder;
+      }
+    }
+
+    return placeholder;
   }
 
   /// Builds a status chip widget for displaying report status or priority.
@@ -478,20 +514,229 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
     );
   }
 
-  /// Returns appropriate color for status display.
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-      case 'completado':
-        return Colors.green;
-      case 'in progress':
-      case 'en proceso':
-        return Colors.orange;
-      case 'pending':
-      case 'pendiente':
-        return Colors.red;
-      default:
-        return EcoColors.secondary;
+  /// Builds a dropdown for updating report status.
+  ///
+  /// Creates an interactive dropdown that allows users to select and update
+  /// the status of a report. Shows loading indicator during updates and
+  /// provides visual feedback for successful or failed operations.
+  Widget _buildStatusDropdown(Reporte reporte) {
+    final bool isUpdating = _updatingReports.contains(reporte.id);
+    final Color statusColor = _getStatusColorFromEnum(reporte.statusEnum);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: isUpdating
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: statusColor,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Actualizando...',
+                  style: TextStyle(fontSize: 12, color: statusColor),
+                ),
+              ],
+            )
+          : DropdownButtonHideUnderline(
+              child: DropdownButton<ReportStatus>(
+                value: reporte.statusEnum,
+                isDense: true,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: statusColor,
+                ),
+                dropdownColor: Colors.white,
+                icon: Icon(Icons.arrow_drop_down, color: statusColor, size: 18),
+                items: ReportStatus.values.map((ReportStatus status) {
+                  final Color itemColor = _getStatusColorFromEnum(status);
+                  return DropdownMenuItem<ReportStatus>(
+                    value: status,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: itemColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          status.displayName,
+                          style: TextStyle(
+                            color: itemColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (ReportStatus? newStatus) {
+                  if (newStatus != null && newStatus != reporte.statusEnum) {
+                    _updateReportStatus(reporte, newStatus);
+                  }
+                },
+              ),
+            ),
+    );
+  }
+
+  /// Returns appropriate color for status enum values.
+  ///
+  /// Provides semantic color coding for each report status:
+  /// - Pending: Orange (waiting for action)
+  /// - Received: Blue (information/acknowledgment)
+  /// - En Route: Purple (in progress)
+  /// - Collected: Green (success)
+  /// - Completed: Grey (finished)
+  Color _getStatusColorFromEnum(ReportStatus status) {
+    switch (status) {
+      case ReportStatus.pending:
+        return const Color(0xFFFF9800); // Orange
+      case ReportStatus.received:
+        return const Color(0xFF2196F3); // Blue
+      case ReportStatus.enRoute:
+        return const Color(0xFF9C27B0); // Purple
+      case ReportStatus.collected:
+        return const Color(0xFF4CAF50); // Green
+      case ReportStatus.completed:
+        return const Color(0xFF607D8B); // Blue Grey
+    }
+  }
+
+  /// Updates the status of a report both locally and in the backend.
+  ///
+  /// This method performs an optimistic update, immediately updating the UI
+  /// and then syncing with the backend. If the backend update fails, the
+  /// local state is reverted to maintain consistency.
+  ///
+  /// Parameters:
+  /// - [reporte]: The report to update
+  /// - [newStatus]: The new status to set
+  Future<void> _updateReportStatus(
+    Reporte reporte,
+    ReportStatus newStatus,
+  ) async {
+    // Start loading state
+    setState(() {
+      _updatingReports.add(reporte.id);
+    });
+
+    // Store original state for potential rollback
+    final originalStatus = reporte.statusEnum;
+
+    // Optimistic update - update UI immediately
+    final updatedReporte = reporte.updateStatus(newStatus);
+    final reportIndex = _reportes.indexWhere((r) => r.id == reporte.id);
+
+    if (reportIndex != -1) {
+      setState(() {
+        _reportes[reportIndex] = updatedReporte;
+      });
+    }
+
+    try {
+      // Update in backend
+      final result = await ReportStatusService.updateReportStatus(
+        reporte.id,
+        newStatus,
+      );
+
+      if (result.success) {
+        // Show success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result.message ?? 'Estado actualizado correctamente',
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
+            ),
+          );
+        }
+      } else {
+        // Rollback on failure
+        final revertedReporte = reporte.updateStatus(originalStatus);
+        if (reportIndex != -1 && mounted) {
+          setState(() {
+            _reportes[reportIndex] = revertedReporte;
+          });
+        }
+
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error ?? 'Error al actualizar estado'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Reintentar',
+                textColor: Colors.white,
+                onPressed: () {
+                  _updateReportStatus(reporte, newStatus);
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Rollback on exception
+      final revertedReporte = reporte.updateStatus(originalStatus);
+      if (reportIndex != -1 && mounted) {
+        setState(() {
+          _reportes[reportIndex] = revertedReporte;
+        });
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error de conexión: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Reintentar',
+              textColor: Colors.white,
+              onPressed: () {
+                _updateReportStatus(reporte, newStatus);
+              },
+            ),
+          ),
+        );
+      }
+    } finally {
+      // Stop loading state
+      if (mounted) {
+        setState(() {
+          _updatingReports.remove(reporte.id);
+        });
+      }
     }
   }
 

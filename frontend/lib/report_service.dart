@@ -5,19 +5,17 @@ import 'dart:io';
 // Package imports:
 import 'package:http/http.dart' as http;
 
-/// A service class that handles environmental report submission and backend communication.
-///
-/// This service provides functionality to:
-/// - Submit environmental reports with photos and location data
-/// - Test backend connectivity
-/// - Handle photo encoding and data transmission to the API
-///
-/// The service uses HTTP POST requests to send reports to the backend server
-/// and includes proper error handling for network and server issues.
-class ReportService {
-  /// The base URL for the backend API endpoints.
-  static const String baseUrl = 'http://192.168.1.115:3000/api';
+// Project imports:
+import 'config/api_config.dart';
 
+/// Service for handling environmental reports
+///
+/// This service manages the creation, retrieval, and submission
+/// of environmental reports to the backend API. It handles image
+/// upload, GPS coordinates, and report metadata.
+///
+/// Service class for managing environmental reports
+class ReportService {
   /// Submits an environmental report to the backend server.
   ///
   /// This method takes a photo file and location data, converts the image to Base64,
@@ -41,6 +39,27 @@ class ReportService {
     required String classification,
   }) async {
     try {
+      // Fast preflight: verify backend is reachable to avoid long hangs
+      try {
+        final health = await http
+            .get(
+              Uri.parse(ApiConfig.healthUrl),
+              headers: {'Accept': 'application/json'},
+            )
+            .timeout(const Duration(seconds: 3));
+        if (health.statusCode != 200) {
+          return ReportSubmissionResult.error(
+            message:
+                'Backend not reachable (health ${health.statusCode}). Please check the server.',
+          );
+        }
+      } catch (e) {
+        return ReportSubmissionResult.error(
+          message:
+              'Cannot reach backend at ${ApiConfig.baseUrl}. Ensure your phone and computer are on the same network and the server is running. ($e)',
+        );
+      }
+
       // Convert image to Base64 format
       final bytes = await imageFile.readAsBytes();
       final base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
@@ -57,14 +76,16 @@ class ReportService {
       };
 
       // Send data to backend API
-      final response = await http.post(
-        Uri.parse('$baseUrl/reports'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode(reportData),
-      );
+      final response = await http
+          .post(
+            Uri.parse(ApiConfig.reportsUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode(reportData),
+          )
+          .timeout(const Duration(seconds: 8));
 
       final responseData = json.decode(response.body) as Map<String, dynamic>;
 
@@ -96,7 +117,7 @@ class ReportService {
     try {
       final response = await http
           .get(
-            Uri.parse('http://192.168.1.115:3000/health'),
+            Uri.parse(ApiConfig.healthUrl),
             headers: {'Accept': 'application/json'},
           )
           .timeout(const Duration(seconds: 5));

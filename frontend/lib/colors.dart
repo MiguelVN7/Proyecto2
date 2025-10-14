@@ -95,6 +95,14 @@ class EcoColors {
   /// Applied to informational messages and neutral feedback.
   static const Color info = coldSky;
 
+  // Text colors
+
+  /// Primary text color.
+  static const Color textPrimary = grey900;
+
+  /// Secondary text color.
+  static const Color textSecondary = grey700;
+
   // Neutral grays derived from the palette
 
   /// Very light gray for subtle backgrounds.
@@ -133,7 +141,6 @@ extension EcoColorScheme on ColorScheme {
         primary: EcoColors.primary,
         secondary: EcoColors.secondary,
         surface: EcoColors.surface,
-        background: EcoColors.background,
         brightness: Brightness.light,
       ).copyWith(
         primary: EcoColors.primary,
