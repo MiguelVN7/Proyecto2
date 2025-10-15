@@ -4,20 +4,29 @@ import 'package:flutter/material.dart';
 // Package imports:
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 
 // Project imports:
 import 'package:eco_track/features/auth/presentation/pages/register_page.dart';
 import 'package:eco_track/features/auth/state/auth_bloc.dart';
 import 'package:eco_track/features/auth/data/auth_repository.dart';
 import 'package:eco_track/features/auth/data/user_repository.dart';
+// import 'package:eco_track/firebase_options.dart';
 
 void main() {
+  late FirebaseAuth mockAuth;
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    mockAuth = MockFirebaseAuth(signedIn: false);
+  });
+
   group('RegisterPage Widget Tests', () {
     Widget createWidgetUnderTest() {
       return MaterialApp(
         home: BlocProvider<AuthBloc>(
           create: (context) => AuthBloc(
-            authRepository: AuthRepository(),
+            authRepository: AuthRepository(firebaseAuth: mockAuth),
             userRepository: UserRepository(),
           ),
           child: const RegisterPage(),
@@ -68,7 +77,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-      final emailField = find.byType(TextFormField).at(1); // Second field is email
+  // Safer: find the email field by label
+  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
       await tester.enterText(emailField, 'invalid-email');
 
       final createAccountButton = find.text('Crear Cuenta').last;
@@ -84,10 +94,9 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-      final emailField = find.byType(TextFormField).at(1);
+  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
       await tester.enterText(emailField, 'test@example.com');
-
-      final passwordField = find.byType(TextFormField).at(2);
+  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
       await tester.enterText(passwordField, 'weak');
       await tester.pumpAndSettle();
 
@@ -101,13 +110,11 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-      final emailField = find.byType(TextFormField).at(1);
+  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
       await tester.enterText(emailField, 'test@example.com');
-
-      final passwordField = find.byType(TextFormField).at(2);
+  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
       await tester.enterText(passwordField, 'Password123');
-
-      final confirmPasswordField = find.byType(TextFormField).at(3);
+  final confirmPasswordField = find.widgetWithText(TextFormField, 'Confirmar contraseña *');
       await tester.enterText(confirmPasswordField, 'DifferentPassword123');
 
       final createAccountButton = find.text('Crear Cuenta').last;
@@ -136,13 +143,11 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act - Fill valid form but don't accept terms
-      final emailField = find.byType(TextFormField).at(1);
+  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
       await tester.enterText(emailField, 'test@example.com');
-
-      final passwordField = find.byType(TextFormField).at(2);
+  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
       await tester.enterText(passwordField, 'Password123');
-
-      final confirmPasswordField = find.byType(TextFormField).at(3);
+  final confirmPasswordField = find.widgetWithText(TextFormField, 'Confirmar contraseña *');
       await tester.enterText(confirmPasswordField, 'Password123');
 
       final createAccountButton = find.text('Crear Cuenta').last;
@@ -158,7 +163,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-      final loginLink = find.text('Inicia sesión');
+  final loginLink = find.text('Inicia sesión');
       await tester.tap(loginLink);
       await tester.pumpAndSettle();
 

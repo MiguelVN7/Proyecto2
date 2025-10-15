@@ -28,6 +28,7 @@ class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late final FirebaseStorage _storage;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _initialized = false;
 
   // Collection names
   static const String _reportsCollection = 'reports';
@@ -39,6 +40,10 @@ class FirestoreService {
 
   /// Initialize Firestore service
   Future<void> initialize() async {
+    if (_initialized) {
+      debugPrint('✅ Firestore Service already initialized');
+      return;
+    }
     try {
       debugPrint('🔥 Initializing Firestore Service...');
 
@@ -75,6 +80,7 @@ class FirestoreService {
       }
 
       debugPrint('✅ Firestore Service initialized successfully');
+      _initialized = true;
     } catch (e) {
       debugPrint('❌ Error initializing Firestore Service: $e');
       // Continue without offline persistence if it fails
@@ -490,20 +496,23 @@ class FirestoreService {
   Stream<List<Reporte>> getReportsByStatus(
     ReportStatus status, {
     int limit = 50,
+    String? userId,
   }) {
     debugPrint('📡 Setting up reports stream by status: ${status.displayName}');
 
-    return _firestore
+    Query<Map<String, dynamic>> query = _firestore
         .collection(_reportsCollection)
         .where('estado', isEqualTo: status.displayName)
         .orderBy('created_at', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => Reporte.fromFirestore(doc))
-              .toList();
-        });
+        .limit(limit);
+
+    if (userId != null) {
+      query = query.where('user_id', isEqualTo: userId);
+    }
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Reporte.fromFirestore(doc)).toList();
+    });
   }
 
   /// Get reports within a geographic area

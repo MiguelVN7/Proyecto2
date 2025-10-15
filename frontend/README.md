@@ -1,3 +1,28 @@
+# EcoTrack
+
+## Estrategia de Pruebas Automáticas
+
+La estrategia completa está en `docs/testing-strategy.md`.
+
+Comandos rápidos:
+
+```bash
+# Instalar dependencias
+flutter pub get
+
+# Pruebas unitarias y de widgets
+flutter test
+
+# Cobertura
+flutter test --coverage
+# (Opcional) generar reporte HTML con genhtml si lo tienes instalado
+# genhtml coverage/lcov.info -o coverage/html
+
+# Prueba de integración (smoke)
+flutter test integration_test
+```
+
+CI: Hemos añadido `.github/workflows/flutter-ci.yml` para correr analyze + test + coverage en cada push/PR.
 # Proyecto2 / eco_track
 
 Contiene el proyecto realizado por Juan Esteban Zuluaga, Juan Ignacio Lotero y Miguel Villegas para la materia de Proyecto 2.

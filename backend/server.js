@@ -3,13 +3,14 @@ const cors = require('cors');
 const fs = require('fs-extra');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const Database = require('./database');
+const firestoreService = require('./firestore_service');
+const fcmService = require('./fcm_service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Instancia de base de datos
-const db = new Database();
+// Firestore service instance
+const db = firestoreService;
 
 // Middleware
 app.use(cors());
@@ -85,8 +86,8 @@ app.post('/api/reports', async (req, res) => {
       created_at: new Date().toISOString()
     };
 
-    // Guardar reporte en base de datos SQLite
-    db.insertReport(report);
+    // Guardar reporte en Firestore
+    await db.insertReport(report);
 
     // Guardar reporte en archivo JSON (respaldo opcional)
     const reportPath = path.join(reportsDir, `${fullReportId}.json`);
@@ -97,6 +98,17 @@ app.post('/api/reports', async (req, res) => {
     console.log(`📍 Ubicación: ${latitude}, ${longitude} (±${accuracy}m)`);
     console.log(`🗂️ Clasificación: ${classification}`);
     console.log(`💾 Guardado en: ${reportPath}`);
+
+    // Send notification for new report received (optional - for admin notifications)
+    try {
+      const notificationResult = await fcmService.sendReportStatusNotification(fullReportId, 'received');
+      if (notificationResult.success) {
+        console.log(`📤 Report received notification sent: ${notificationResult.totalSent} devices`);
+      }
+    } catch (notificationError) {
+      console.error('❌ Error sending report received notification:', notificationError.message);
+      // Don't fail the report submission if notification fails
+    }
 
     // Respuesta exitosa
     res.status(201).json({
@@ -127,7 +139,7 @@ app.get('/api/reports/:reportId', async (req, res) => {
   try {
     const { reportId } = req.params;
     
-    const report = db.getReport(reportId);
+    const report = await db.getReport(reportId);
     
     if (!report) {
       return res.status(404).json({
@@ -149,10 +161,80 @@ app.get('/api/reports/:reportId', async (req, res) => {
   }
 });
 
-// Endpoint para estadísticas
-app.get('/api/stats', async (req, res) => {
+// Endpoint para actualizar estado de reporte
+app.patch('/api/reports/:reportId/status', async (req, res) => {
   try {
-    const stats = db.getStats();
+    const { reportId } = req.params;
+    const { status, timestamp } = req.body;
+
+    // Validar datos requeridos
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Estado requerido (status)'
+      });
+    }
+
+    // Validar estados permitidos
+    const allowedStatuses = ['pending', 'received', 'en_route', 'collected', 'completed'];
+    if (!allowedStatuses.includes(status.toLowerCase().replace(' ', '_'))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Estado no válido. Estados permitidos: ' + allowedStatuses.join(', ')
+      });
+    }
+
+    // Actualizar estado en Firestore
+    const updateTimestamp = timestamp || new Date().toISOString();
+    await db.updateReportStatus(reportId, status, updateTimestamp);
+
+    console.log(`🔄 Estado actualizado: ${reportId} -> ${status}`);
+
+    // Send push notification for status update
+    try {
+      const notificationResult = await fcmService.sendReportStatusNotification(reportId, status);
+      if (notificationResult.success) {
+        console.log(`📤 Status notification sent for ${reportId}: ${notificationResult.totalSent} devices`);
+      } else {
+        console.log(`⚠️ Status notification failed for ${reportId}: ${notificationResult.error}`);
+      }
+    } catch (notificationError) {
+      console.error('❌ Error sending status notification:', notificationError.message);
+      // Don't fail the status update if notification fails
+    }
+
+    res.json({
+      success: true,
+      message: 'Estado actualizado correctamente',
+      data: {
+        reportId,
+        newStatus: status,
+        timestamp: updateTimestamp
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error actualizando estado:', error);
+
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Reporte no encontrado'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Endpoint para estadísticas
+app.get('/api/stats', async (_req, res) => {
+  try {
+    const stats = await db.getStats();
     res.json({
       success: true,
       stats
@@ -166,6 +248,144 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+// FCM Endpoints
+
+// Register FCM token
+app.post('/api/fcm/register', async (req, res) => {
+  try {
+    const { fcm_token, platform, app_version, device_info } = req.body;
+
+    if (!fcm_token) {
+      return res.status(400).json({
+        success: false,
+        message: 'FCM token is required'
+      });
+    }
+
+    const tokenData = fcmService.registerToken(fcm_token, {
+      platform,
+      app_version,
+      device_info,
+    });
+
+    console.log(`📱 FCM token registered from ${platform || 'unknown'}`);
+
+    res.json({
+      success: true,
+      message: 'FCM token registered successfully',
+      data: {
+        token_id: fcm_token.substring(0, 20) + '...',
+        registered_at: tokenData.registeredAt,
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error registering FCM token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering FCM token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Unregister FCM token
+app.delete('/api/fcm/unregister', async (req, res) => {
+  try {
+    const { fcm_token } = req.body;
+
+    if (!fcm_token) {
+      return res.status(400).json({
+        success: false,
+        message: 'FCM token is required'
+      });
+    }
+
+    const removed = fcmService.unregisterToken(fcm_token);
+
+    if (removed) {
+      console.log(`🗑️ FCM token unregistered`);
+      res.json({
+        success: true,
+        message: 'FCM token unregistered successfully'
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'FCM token not found'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error unregistering FCM token:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error unregistering FCM token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Send test notification
+app.post('/api/fcm/test', async (req, res) => {
+  try {
+    const { fcm_token, title, body, data } = req.body;
+
+    let result;
+    if (fcm_token) {
+      // Send to specific token
+      const notification = {
+        title: title || '🧪 EcoTrack Test',
+        body: body || 'Test notification from EcoTrack backend'
+      };
+      result = await fcmService.sendNotificationToToken(fcm_token, notification, data || {});
+    } else {
+      // Broadcast test notification
+      result = await fcmService.sendTestNotification();
+    }
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Test notification sent successfully',
+        data: result
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send test notification',
+        error: result.error
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error sending test notification:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error sending test notification',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Get FCM statistics
+app.get('/api/fcm/stats', async (_req, res) => {
+  try {
+    const stats = fcmService.getStats();
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    console.error('❌ Error getting FCM stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting FCM statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Servir imágenes estáticamente
 app.use('/images', express.static(imagesDir));
 
@@ -175,7 +395,7 @@ app.get('/api/reports', async (req, res) => {
     const limit = parseInt(req.query.limit) || 100;
     const offset = parseInt(req.query.offset) || 0;
     
-    const reports = db.getAllReports(limit, offset);
+    const reports = await db.getAllReports(limit, offset);
     
     res.json({
       success: true,
@@ -199,19 +419,22 @@ app.get('/api/reports', async (req, res) => {
   }
 });
 
-// Inicializar base de datos y servidor
+// Inicializar Firestore y servidor
 (async () => {
   try {
     await db.initialize();
-    
+
+    // Initialize FCM service
+    fcmService.initialize();
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🌱 EcoTrack Backend API ejecutándose en puerto ${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/health`);
       console.log(`📝 Reportes API: http://localhost:${PORT}/api/reports`);
-      console.log(`� Estadísticas: http://localhost:${PORT}/api/stats`);
-      console.log(`�📁 Directorio reportes: ${reportsDir}`);
+      console.log(`📊 Estadísticas: http://localhost:${PORT}/api/stats`);
+      console.log(`📁 Directorio reportes: ${reportsDir}`);
       console.log(`🖼️ Directorio imágenes: ${imagesDir}`);
-      console.log(`�️ Base de datos: SQLite (ecotrack.db)`);
+      console.log(`🔥 Base de datos: Firestore (cloud-based)`);
       console.log(`🌐 Accesible desde la red en: http://192.168.1.115:${PORT}`);
     });
   } catch (error) {

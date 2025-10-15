@@ -30,6 +30,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthPasswordResetRequested>(_onPasswordResetRequested);
   }
 
   /// Handles authentication initialization.
@@ -138,6 +139,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       // Even if signOut fails, we should treat as logged out
       emit(const AuthState.unauthenticated());
+    }
+  }
+
+  /// Handles password reset email requests.
+  Future<void> _onPasswordResetRequested(
+    AuthPasswordResetRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthState.loading());
+
+    try {
+      await _authRepository.sendPasswordResetEmail(event.email);
+      emit(AuthState.passwordResetSent(event.email));
+    } on AuthException catch (e) {
+      emit(AuthState.error(e.message));
+    } catch (e) {
+      emit(AuthState.error('Error al enviar el correo de recuperación: $e'));
     }
   }
 }

@@ -63,6 +63,10 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.4
   bloc_test: ^9.1.7
+  integration_test:
+    sdk: flutter
+  fake_cloud_firestore: ^3.1.0
+  firebase_auth_mocks: ^0.14.2
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

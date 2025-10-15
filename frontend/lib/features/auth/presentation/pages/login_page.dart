@@ -45,29 +45,71 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onForgotPasswordPressed() {
-    if (_emailController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ingresa tu email para recuperar la contraseña'),
-          backgroundColor: EcoColors.warning,
-        ),
-      );
+    final current = _emailController.text.trim();
+    if (current.isEmpty) {
+      _promptEmailForReset();
       return;
     }
 
-    if (!EmailValidator.validate(_emailController.text.trim())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ingresa un email válido para recuperar la contraseña'),
-          backgroundColor: EcoColors.error,
-        ),
-      );
+    if (!EmailValidator.validate(current)) {
+      _promptEmailForReset(initialEmail: current);
       return;
     }
 
-    context.read<AuthBloc>().add(AuthPasswordResetRequested(
-          email: _emailController.text.trim(),
-        ));
+    context.read<AuthBloc>().add(AuthPasswordResetRequested(email: current));
+  }
+
+  Future<void> _promptEmailForReset({String initialEmail = ''}) async {
+    final controller = TextEditingController(text: initialEmail);
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('Recuperar contraseña'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: controller,
+              autofocus: true,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Correo electrónico',
+                hintText: 'ejemplo@correo.com',
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+              validator: (value) {
+                final v = (value ?? '').trim();
+                if (v.isEmpty) return 'El correo es requerido';
+                if (!EmailValidator.validate(v)) {
+                  return 'Ingresa un correo válido';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) {
+                  final email = controller.text.trim();
+                  Navigator.of(ctx).pop();
+                  context
+                      .read<AuthBloc>()
+                      .add(AuthPasswordResetRequested(email: email));
+                }
+              },
+              child: const Text('Enviar enlace'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _navigateToRegister() {

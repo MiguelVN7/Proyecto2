@@ -179,6 +179,12 @@ class AuthRepository {
   /// Throws [AuthException] if sending fails.
   Future<void> sendPasswordResetEmail(String email) async {
     try {
+      // Ensure password reset email is sent in Spanish
+      try {
+        await _firebaseAuth.setLanguageCode('es');
+      } catch (_) {
+        // Non-fatal if setting language fails
+      }
       await _firebaseAuth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       throw AuthException.fromFirebase(e);

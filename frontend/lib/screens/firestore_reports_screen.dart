@@ -135,9 +135,13 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
   /// Build the reports stream widget
   Widget _buildReportsStream() {
     Stream<List<Reporte>> reportsStream;
+    final currentUserId = _firestoreService.currentUserId;
 
     if (_selectedStatus == 'all') {
-      reportsStream = _firestoreService.getReportsStream(limit: 50);
+      reportsStream = _firestoreService.getReportsStream(
+        limit: 50,
+        userId: currentUserId,
+      );
     } else {
       // Convert status string to enum
       ReportStatus? statusEnum;
@@ -160,9 +164,15 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
       }
 
       if (statusEnum != null) {
-        reportsStream = _firestoreService.getReportsByStatus(statusEnum);
+        reportsStream = _firestoreService.getReportsByStatus(
+          statusEnum,
+          userId: currentUserId,
+        );
       } else {
-        reportsStream = _firestoreService.getReportsStream(limit: 50);
+        reportsStream = _firestoreService.getReportsStream(
+          limit: 50,
+          userId: currentUserId,
+        );
       }
     }
 

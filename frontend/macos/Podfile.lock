@@ -1188,6 +1188,10 @@ PODS:
     - abseil/meta/type_traits
     - abseil/xcprivacy
   - abseil/xcprivacy (1.20240722.0)
+  - AppCheckCore (11.2.0):
+    - GoogleUtilities/Environment (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - PromisesObjC (~> 2.4)
   - BoringSSL-GRPC (0.0.37):
     - BoringSSL-GRPC/Implementation (= 0.0.37)
     - BoringSSL-GRPC/Interface (= 0.0.37)
@@ -1199,6 +1203,11 @@ PODS:
     - Firebase/Firestore (~> 11.15.0)
     - firebase_core
     - FlutterMacOS
+  - file_selector_macos (0.0.1):
+    - FlutterMacOS
+  - Firebase/AppCheck (11.15.0):
+    - Firebase/CoreOnly
+    - FirebaseAppCheck (~> 11.15.0)
   - Firebase/Auth (11.15.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 11.15.0)
@@ -1213,6 +1222,11 @@ PODS:
   - Firebase/Storage (11.15.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 11.15.0)
+  - firebase_app_check (0.3.2-10):
+    - Firebase/AppCheck (~> 11.15.0)
+    - Firebase/CoreOnly (~> 11.15.0)
+    - firebase_core
+    - FlutterMacOS
   - firebase_auth (5.7.0):
     - Firebase/Auth (~> 11.15.0)
     - Firebase/CoreOnly (~> 11.15.0)
@@ -1231,6 +1245,12 @@ PODS:
     - Firebase/Storage (~> 11.15.0)
     - firebase_core
     - FlutterMacOS
+  - FirebaseAppCheck (11.15.0):
+    - AppCheckCore (~> 11.0)
+    - FirebaseAppCheckInterop (~> 11.0)
+    - FirebaseCore (~> 11.15.0)
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/UserDefaults (~> 8.1)
   - FirebaseAppCheckInterop (11.15.0)
   - FirebaseAuth (11.15.0):
     - FirebaseAppCheckInterop (~> 11.0)
@@ -1433,6 +1453,8 @@ PODS:
 
 DEPENDENCIES:
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
+  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
+  - firebase_app_check (from `Flutter/ephemeral/.symlinks/plugins/firebase_app_check/macos`)
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
@@ -1446,8 +1468,10 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - abseil
+    - AppCheckCore
     - BoringSSL-GRPC
     - Firebase
+    - FirebaseAppCheck
     - FirebaseAppCheckInterop
     - FirebaseAuth
     - FirebaseAuthInterop
@@ -1472,6 +1496,10 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   cloud_firestore:
     :path: Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos
+  file_selector_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
+  firebase_app_check:
+    :path: Flutter/ephemeral/.symlinks/plugins/firebase_app_check/macos
   firebase_auth:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos
   firebase_core:
@@ -1493,13 +1521,17 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
+  AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   cloud_firestore: 92bf414ac4a12c1008efa35a70ffe988f90cf740
+  file_selector_macos: 6280b52b459ae6c590af5d78fc35c7267a3c4b31
   Firebase: d99ac19b909cd2c548339c2241ecd0d1599ab02e
+  firebase_app_check: 61f24e87e25134752f63264d9bcb8198f96f241b
   firebase_auth: 693f1e1ef2bb11a241d4478e63f1f47676af0538
   firebase_core: 7667f880631ae8ad10e3d6567ab7582fe0682326
   firebase_messaging: df39858bcbbcce792c9e4f1ca51b41123d6181fd
   firebase_storage: de55edba0e3b9e680fe3d48b94007aa8aedc6b29
+  FirebaseAppCheck: 4574d7180be2a8b514f588099fc5262f032a92c7
   FirebaseAppCheckInterop: 06fe5a3799278ae4667e6c432edd86b1030fa3df
   FirebaseAuth: a6575e5fbf46b046c58dc211a28a5fbdd8d4c83b
   FirebaseAuthInterop: 7087d7a4ee4bc4de019b2d0c240974ed5d89e2fd

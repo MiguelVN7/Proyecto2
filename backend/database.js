@@ -25,15 +25,15 @@ class DatabaseManager {
   createTables() {
     const createReportsTable = `
       CREATE TABLE IF NOT EXISTS reports (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        image_path TEXT NOT NULL,
-        location_lat REAL NOT NULL,
-        location_lng REAL NOT NULL,
-        address TEXT,
-        waste_type TEXT NOT NULL,
-        severity TEXT NOT NULL,
-        description TEXT,
-        reporter_name TEXT,
+        id TEXT PRIMARY KEY,
+        timestamp TEXT NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        accuracy REAL DEFAULT 0,
+        classification TEXT NOT NULL,
+        device_info TEXT,
+        image_path TEXT,
+        status TEXT DEFAULT 'received',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
@@ -45,19 +45,20 @@ class DatabaseManager {
   // Insertar nuevo reporte
   insertReport(report) {
     const sql = `
-      INSERT INTO reports (image_path, location_lat, location_lng, address, waste_type, severity, description, reporter_name)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO reports (id, timestamp, latitude, longitude, accuracy, classification, device_info, image_path, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    
+
     const params = [
-      report.image_path || null,
+      report.id,
+      report.timestamp,
       report.location.latitude,
       report.location.longitude,
-      report.address || null,
-      report.classification || 'plastico',
-      report.severity || 'medio',
-      report.description || null,
-      report.reporter_name || 'Usuario Móvil'
+      report.location.accuracy || 0,
+      report.classification,
+      report.device_info || 'Unknown',
+      report.image_path || null,
+      report.status || 'received'
     ];
 
     try {
@@ -73,12 +74,11 @@ class DatabaseManager {
   // Obtener reporte por ID
   getReport(reportId) {
     const sql = 'SELECT * FROM reports WHERE id = ?';
-    
+
     try {
       const row = this.db.prepare(sql).get(reportId);
-      
+
       if (row) {
-        // Convertir formato de SQLite a formato original
         return {
           id: row.id,
           timestamp: row.timestamp,
@@ -104,14 +104,14 @@ class DatabaseManager {
   // Listar todos los reportes (con límite y orden)
   getAllReports(limit = 100, offset = 0) {
     const sql = `
-      SELECT * FROM reports 
-      ORDER BY created_at DESC 
+      SELECT * FROM reports
+      ORDER BY created_at DESC
       LIMIT ? OFFSET ?
     `;
-    
+
     try {
       const rows = this.db.prepare(sql).all(limit, offset);
-      
+
       return rows.map(row => ({
         id: row.id,
         timestamp: row.timestamp,
@@ -128,6 +128,29 @@ class DatabaseManager {
       }));
     } catch (error) {
       console.error('❌ Error listando reportes:', error.message);
+      throw error;
+    }
+  }
+
+  // Actualizar estado de reporte
+  updateReportStatus(reportId, newStatus, timestamp = null) {
+    const sql = `
+      UPDATE reports
+      SET status = ?, timestamp = COALESCE(?, timestamp)
+      WHERE id = ?
+    `;
+
+    try {
+      const result = this.db.prepare(sql).run(newStatus, timestamp, reportId);
+
+      if (result.changes === 0) {
+        throw new Error(`Report with ID ${reportId} not found`);
+      }
+
+      console.log(`📄 Estado del reporte ${reportId} actualizado a: ${newStatus}`);
+      return result;
+    } catch (error) {
+      console.error('❌ Error actualizando estado del reporte:', error.message);
       throw error;
     }
   }
