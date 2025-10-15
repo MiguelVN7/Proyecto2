@@ -2,7 +2,7 @@
 
 Sistema completo de seguimiento ecológico con aplicación móvil y backend API.
 
-## 📁 Estructura del Proyecto (Monorepo)
+##  Estructura del Proyecto (Monorepo)
 
 ```
 Proyecto2/
@@ -14,9 +14,9 @@ Proyecto2/
 └── 📝 logs/               # Logs de desarrollo
 ```
 
-## 🚀 Inicio Rápido
+##  Inicio Rápido
 
-### 🎯 Todo en Uno (Recomendado)
+###  Todo en Uno (Recomendado)
 ```bash
 ./scripts/dev_start.sh [device_id]
 ```
@@ -35,7 +35,7 @@ npm install
 npm start
 ```
 
-## 🛠️ Desarrollo
+##  Desarrollo
 
 ### Script de Despliegue Limpio
 ```bash
@@ -55,15 +55,15 @@ curl http://localhost:3000/health
 curl http://localhost:3000/api/reports | jq
 ```
 
-## 📋 Tecnologías
+##  Tecnologías
 
 - **Frontend**: Flutter, Dart
-- **Backend**: Node.js, Express, SQLite
+- **Backend**: Firebase
 - **Móvil**: Android (cámara personalizada)
 - **Base de datos**: SQLite
 - **API**: RESTful
 
-## 🎯 Funcionalidades
+##  Funcionalidades
 
 - ✅ Captura de fotos con cámara personalizada
 - ✅ Clasificación automática de residuos (10 tipos diferentes)
@@ -73,13 +73,13 @@ curl http://localhost:3000/api/reports | jq
 - ✅ Sistema de versiones automático
 - ✅ Monorepo con frontend y backend integrados
 
-## 🔄 Estado del Proyecto
+##  Estado del Proyecto
 
-**Última actualización**: Septiembre 2025  
+**Última actualización**: Octubre 2025  
 **Versión actual**: v1.0.0+2  
-**Estado**: ✅ Funcionando correctamente
+**Estado**:  Funcionando correctamente
 
-## 👥 Equipo de Desarrollo
+##  Equipo de Desarrollo
 
 **Desarrollado por**: 
 - Juan Esteban Zuluaga
@@ -89,13 +89,10 @@ curl http://localhost:3000/api/reports | jq
 **Materia**: Proyecto 2  
 **Repositorio**: MiguelVN7/Proyecto2
 
-## 📚 Recursos Flutter
+##  Recursos Flutter
 
 Para más información sobre Flutter:
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
->>>>>>> 0a794c8651a37d2d63cf303f370746ceaacbdbd0
+
