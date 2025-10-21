@@ -14,34 +14,6 @@ Proyecto2/
 └── 📝 logs/               # Logs de desarrollo
 ```
 
-##  Inicio Rápido
-
-###  Todo en Uno (Recomendado)
-```bash
-./scripts/dev_start.sh [device_id]
-```
-
-### Frontend (Flutter)
-```bash
-cd frontend
-flutter pub get
-flutter run -d [device_id]
-```
-
-### Backend (Node.js)
-```bash
-cd backend
-npm install
-npm start
-```
-
-##  Desarrollo
-
-### Script de Despliegue Limpio
-```bash
-cd frontend
-./dev_deploy.sh [device_id]
-```
 
 ### Comandos Útiles
 ```bash
@@ -54,14 +26,6 @@ curl http://localhost:3000/health
 # Ver reportes en base de datos
 curl http://localhost:3000/api/reports | jq
 ```
-
-##  Tecnologías
-
-- **Frontend**: Flutter, Dart
-- **Backend**: Firebase
-- **Móvil**: Android (cámara personalizada)
-- **Base de datos**: SQLite
-- **API**: RESTful
 
 ##  Funcionalidades
 
@@ -91,7 +55,7 @@ curl http://localhost:3000/api/reports | jq
 
 ##  Recursos Flutter
 
-Para más información sobre Flutter:
+Información sobre Flutter:
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
