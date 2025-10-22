@@ -24,8 +24,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     required AuthRepository authRepository,
     required UserRepository userRepository,
-  })  : _authRepository = authRepository,
-        super(const AuthState.loading()) {
+  }) : _authRepository = authRepository,
+       super(const AuthState.loading()) {
     on<AuthInitialized>(_onAuthInitialized);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLoginRequested>(_onLoginRequested);

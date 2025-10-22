@@ -347,7 +347,7 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
             const SizedBox(height: 12),
             Text(
               _errorMessage!,
-              style: TextStyle(color: EcoColors.error, fontSize: 12),
+              style: const TextStyle(color: EcoColors.error, fontSize: 12),
             ),
           ],
           const SizedBox(height: 8),

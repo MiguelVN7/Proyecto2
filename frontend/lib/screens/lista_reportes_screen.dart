@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-// Se crea una pantalla para listar los reportes con filtros
-
-import 'package:flutter/material.dart';
-import '../models/reporte.dart';
-
-class ListaReportesScreen extends StatefulWidget {
-  final List<Reporte> reportes;
-=======
 /// Screen for displaying and filtering environmental reports.
 ///
 /// This screen provides a comprehensive list view of all submitted environmental reports
@@ -17,9 +8,11 @@ class ListaReportesScreen extends StatefulWidget {
 ///
 /// Each report is displayed as a card showing the photo, classification,
 /// location, and current status information.
+library;
 
 // Flutter imports:
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 // Project imports:
@@ -37,109 +30,12 @@ class ListaReportesScreen extends StatefulWidget {
   final List<Reporte> reportes;
 
   /// Creates a reports list screen with the provided reports data.
->>>>>>> origin/main
   const ListaReportesScreen({super.key, required this.reportes});
 
   @override
   State<ListaReportesScreen> createState() => _ListaReportesScreenState();
 }
 
-<<<<<<< HEAD
-class _ListaReportesScreenState extends State<ListaReportesScreen> {
-  String? estado;
-  String? prioridad;
-  String? tipoResiduo;
-  // Mapa para guardar el estado seleccionado de cada reporte
-  final Map<String, String> estadoBoton = {};
-
-  @override
-  Widget build(BuildContext context) {
-    var filtrados = widget.reportes.where((r) {
-      if (estado != null && r.estado != estado) return false;
-      if (prioridad != null && r.prioridad != prioridad) return false;
-      if (tipoResiduo != null && r.tipoResiduo != tipoResiduo) return false;
-      return true;
-    }).toList();
-
-    return Column(
-      children: [
-        // Filtros
-        Row(
-          children: [
-            DropdownButton<String>(
-              hint: const Text('Estado'),
-              value: estado,
-              items: ['Pendiente', 'En proceso', 'Completado']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => estado = v),
-            ),
-            DropdownButton<String>(
-              hint: const Text('Prioridad'),
-              value: prioridad,
-              items: ['Alta', 'Media', 'Baja']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => prioridad = v),
-            ),
-            DropdownButton<String>(
-              hint: const Text('Tipo'),
-              value: tipoResiduo,
-              items: ['Plástico', 'Orgánico', 'Vidrio']
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (v) => setState(() => tipoResiduo = v),
-            ),
-          ],
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: filtrados.length,
-            itemBuilder: (context, i) {
-              final r = filtrados[i];
-              // Estado actual del botón para este reporte
-              final estadoActual = estadoBoton[r.id] ?? 'Recibido';
-              return Card(
-                child: ListTile(
-                  leading: Image.network(r.fotoUrl, width: 50, height: 50, fit: BoxFit.cover),
-                  title: Text(r.clasificacion),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${r.ubicacion}\n${r.estado} - ${r.prioridad} - ${r.tipoResiduo}'),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Text('Estado: '),
-                          DropdownButton<String>(
-                            value: estadoActual,
-                            items: const [
-                              DropdownMenuItem(value: 'Recibido', child: Text('Recibido')),
-                              DropdownMenuItem(value: 'En recorrido', child: Text('En recorrido')),
-                              DropdownMenuItem(value: 'Recogido', child: Text('Recogido')),
-                            ],
-                            onChanged: (nuevoEstado) {
-                              if (nuevoEstado != null) {
-                                setState(() {
-                                  estadoBoton[r.id] = nuevoEstado;
-                                });
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-=======
 /// State class for ListaReportesScreen managing filters and UI updates.
 ///
 /// Handles the filtering logic for reports based on user-selected criteria
@@ -283,10 +179,10 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
         value: value,
         isExpanded: true,
         underline: const SizedBox(),
-        style: TextStyle(color: EcoColors.onSurface, fontSize: 12),
+        style: const TextStyle(color: EcoColors.onSurface, fontSize: 12),
         items: [
           // Add a "Clear" option
-          DropdownMenuItem<String>(
+          const DropdownMenuItem<String>(
             value: null,
             child: Text(
               'All',
@@ -337,7 +233,7 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
             color: EcoColors.secondary.withOpacity(0.5),
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No reports found',
             style: TextStyle(
               fontSize: 18,
@@ -444,9 +340,9 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
 
   /// Build image widget supporting URL or base64 data URLs
   Widget _buildReportImage(Reporte reporte) {
-    final placeholder = Container(
+    final placeholder = ColoredBox(
       color: EcoColors.grey100,
-      child: Icon(
+      child: const Icon(
         Icons.image_not_supported,
         color: EcoColors.secondary,
         size: 30,
@@ -460,7 +356,7 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
         errorBuilder: (context, error, stackTrace) => placeholder,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
-          return Container(
+          return ColoredBox(
             color: EcoColors.grey100,
             child: Center(
               child: CircularProgressIndicator(
@@ -478,17 +374,31 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
     }
 
     if (reporte.fotoBase64 != null && reporte.fotoBase64!.isNotEmpty) {
-      try {
-        final dataUrl = reporte.fotoBase64!;
-        final commaIndex = dataUrl.indexOf(',');
-        final base64Part = commaIndex >= 0
-            ? dataUrl.substring(commaIndex + 1)
-            : dataUrl;
-        final bytes = base64Decode(base64Part);
-        return Image.memory(bytes, fit: BoxFit.cover);
-      } catch (_) {
-        return placeholder;
+      Uint8List? tryDecode(String raw) {
+        try {
+          var normalized = raw.trim();
+          final commaIndex = normalized.indexOf(',');
+          if (normalized.startsWith('data:') && commaIndex >= 0) {
+            normalized = normalized.substring(commaIndex + 1);
+          }
+          normalized = normalized.replaceAll(RegExp(r'\s'), '');
+          final pad = normalized.length % 4;
+          if (pad != 0)
+            normalized = normalized.padRight(
+              normalized.length + (4 - pad),
+              '=',
+            );
+          return base64Decode(normalized);
+        } catch (_) {
+          return null;
+        }
       }
+
+      final bytes = tryDecode(reporte.fotoBase64!);
+      if (bytes != null) {
+        return Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true);
+      }
+      return placeholder;
     }
 
     return placeholder;
@@ -757,4 +667,3 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
     }
   }
 }
->>>>>>> origin/main

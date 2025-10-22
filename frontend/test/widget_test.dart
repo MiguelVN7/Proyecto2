@@ -15,7 +15,9 @@ import 'package:flutter_test/flutter_test.dart';
 // Keep this test independent from full app wiring to avoid Firebase/Bloc initialization.
 
 void main() {
-  testWidgets('Minimal widget renders a button and reacts to tap', (WidgetTester tester) async {
+  testWidgets('Minimal widget renders a button and reacts to tap', (
+    WidgetTester tester,
+  ) async {
     int taps = 0;
     await tester.pumpWidget(
       MaterialApp(

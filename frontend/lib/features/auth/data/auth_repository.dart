@@ -18,7 +18,7 @@ class AuthRepository {
 
   /// Creates an authentication repository with optional Firebase Auth instance.
   AuthRepository({FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   /// Stream of authentication state changes.
   ///
@@ -54,10 +54,8 @@ class AuthRepository {
     String? displayName,
   }) async {
     try {
-      final UserCredential result = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential result = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       final User? user = result.user;
       if (user == null) {
@@ -93,10 +91,8 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      final UserCredential result = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      final UserCredential result = await _firebaseAuth
+          .signInWithEmailAndPassword(email: email, password: password);
 
       final User? user = result.user;
       if (user == null) {
@@ -259,7 +255,8 @@ class AuthRepository {
       uid: user.uid,
       email: user.email ?? '',
       role: UserRole.citizen, // Default role
-      status: UserStatus.active, // user.emailVerified ? UserStatus.active : UserStatus.pendingVerification,
+      status: UserStatus
+          .active, // user.emailVerified ? UserStatus.active : UserStatus.pendingVerification,
       createdAt: user.metadata.creationTime ?? DateTime.now(),
       displayName: user.displayName,
       photoUrl: user.photoURL,
@@ -281,10 +278,7 @@ class AuthException implements Exception {
   final String message;
 
   /// Creates an authentication exception.
-  const AuthException({
-    required this.code,
-    required this.message,
-  });
+  const AuthException({required this.code, required this.message});
 
   /// Creates an AuthException from a FirebaseAuthException.
   factory AuthException.fromFirebase(FirebaseAuthException e) {
@@ -292,7 +286,8 @@ class AuthException implements Exception {
 
     switch (e.code) {
       case 'weak-password':
-        message = 'La contraseña es muy débil. Debe tener al menos 6 caracteres.';
+        message =
+            'La contraseña es muy débil. Debe tener al menos 6 caracteres.';
         break;
       case 'email-already-in-use':
         message = 'Este email ya está registrado. Intenta iniciar sesión.';

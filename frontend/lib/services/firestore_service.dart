@@ -291,7 +291,7 @@ class FirestoreService {
     try {
       final radiusKm = radiusMeters / 1000.0;
       // Approx degrees per km for latitude
-      final latDegreeKm = 111.32;
+      const latDegreeKm = 111.32;
       final deltaLat = radiusKm / latDegreeKm;
 
       final minLat = lat - deltaLat;

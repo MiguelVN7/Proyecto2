@@ -2,6 +2,7 @@
 ///
 /// This service provides a stable API for the UI while delegating to
 /// Firestore for actual updates, removing the dependency on the HTTP backend.
+library;
 
 import '../models/reporte.dart';
 import 'firestore_service.dart';

@@ -43,7 +43,10 @@ void main() {
       expect(find.text('Únete a la comunidad ambiental'), findsOneWidget);
 
       // Form fields
-      expect(find.byType(TextFormField), findsNWidgets(4)); // name, email, password, confirm
+      expect(
+        find.byType(TextFormField),
+        findsNWidgets(4),
+      ); // name, email, password, confirm
       expect(find.text('Nombre (opcional)'), findsOneWidget);
       expect(find.text('Correo electrónico *'), findsOneWidget);
       expect(find.text('Contraseña *'), findsOneWidget);
@@ -55,10 +58,17 @@ void main() {
 
       // Terms checkbox
       expect(find.byType(Checkbox), findsOneWidget);
-      expect(find.text('Acepto los términos y condiciones y la política de privacidad'), findsOneWidget);
+      expect(
+        find.text(
+          'Acepto los términos y condiciones y la política de privacidad',
+        ),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('should show validation errors for empty required fields', (tester) async {
+    testWidgets('should show validation errors for empty required fields', (
+      tester,
+    ) async {
       // Arrange
       await tester.pumpWidget(createWidgetUnderTest());
 
@@ -72,13 +82,18 @@ void main() {
       expect(find.text('La contraseña es requerida'), findsOneWidget);
     });
 
-    testWidgets('should show email validation error for invalid email', (tester) async {
+    testWidgets('should show email validation error for invalid email', (
+      tester,
+    ) async {
       // Arrange
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-  // Safer: find the email field by label
-  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
+      // Safer: find the email field by label
+      final emailField = find.widgetWithText(
+        TextFormField,
+        'Correo electrónico *',
+      );
       await tester.enterText(emailField, 'invalid-email');
 
       final createAccountButton = find.text('Crear Cuenta').last;
@@ -89,14 +104,19 @@ void main() {
       expect(find.text('Ingresa un correo electrónico válido'), findsOneWidget);
     });
 
-    testWidgets('should show password validation errors for weak password', (tester) async {
+    testWidgets('should show password validation errors for weak password', (
+      tester,
+    ) async {
       // Arrange
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
+      final emailField = find.widgetWithText(
+        TextFormField,
+        'Correo electrónico *',
+      );
       await tester.enterText(emailField, 'test@example.com');
-  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
+      final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
       await tester.enterText(passwordField, 'weak');
       await tester.pumpAndSettle();
 
@@ -105,49 +125,72 @@ void main() {
       expect(find.text('Debe tener al menos 8 caracteres'), findsOneWidget);
     });
 
-    testWidgets('should show password confirmation error when passwords do not match', (tester) async {
-      // Arrange
-      await tester.pumpWidget(createWidgetUnderTest());
+    testWidgets(
+      'should show password confirmation error when passwords do not match',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(createWidgetUnderTest());
 
-      // Act
-  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
-      await tester.enterText(emailField, 'test@example.com');
-  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
-      await tester.enterText(passwordField, 'Password123');
-  final confirmPasswordField = find.widgetWithText(TextFormField, 'Confirmar contraseña *');
-      await tester.enterText(confirmPasswordField, 'DifferentPassword123');
+        // Act
+        final emailField = find.widgetWithText(
+          TextFormField,
+          'Correo electrónico *',
+        );
+        await tester.enterText(emailField, 'test@example.com');
+        final passwordField = find.widgetWithText(
+          TextFormField,
+          'Contraseña *',
+        );
+        await tester.enterText(passwordField, 'Password123');
+        final confirmPasswordField = find.widgetWithText(
+          TextFormField,
+          'Confirmar contraseña *',
+        );
+        await tester.enterText(confirmPasswordField, 'DifferentPassword123');
 
-      final createAccountButton = find.text('Crear Cuenta').last;
-      await tester.tap(createAccountButton);
-      await tester.pumpAndSettle();
+        final createAccountButton = find.text('Crear Cuenta').last;
+        await tester.tap(createAccountButton);
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Las contraseñas no coinciden'), findsOneWidget);
-    });
+        // Assert
+        expect(find.text('Las contraseñas no coinciden'), findsOneWidget);
+      },
+    );
 
-    testWidgets('should toggle password visibility when visibility icon is tapped', (tester) async {
-      // Arrange
-      await tester.pumpWidget(createWidgetUnderTest());
+    testWidgets(
+      'should toggle password visibility when visibility icon is tapped',
+      (tester) async {
+        // Arrange
+        await tester.pumpWidget(createWidgetUnderTest());
 
-      // Act - Find and tap the visibility icon for password field
-      final passwordVisibilityIcon = find.byIcon(Icons.visibility).first;
-      await tester.tap(passwordVisibilityIcon);
-      await tester.pumpAndSettle();
+        // Act - Find and tap the visibility icon for password field
+        final passwordVisibilityIcon = find.byIcon(Icons.visibility).first;
+        await tester.tap(passwordVisibilityIcon);
+        await tester.pumpAndSettle();
 
-      // Assert - Icon should change to visibility_off
-      expect(find.byIcon(Icons.visibility_off), findsAtLeastNWidgets(1));
-    });
+        // Assert - Icon should change to visibility_off
+        expect(find.byIcon(Icons.visibility_off), findsAtLeastNWidgets(1));
+      },
+    );
 
-    testWidgets('should show snackbar error when terms are not accepted', (tester) async {
+    testWidgets('should show snackbar error when terms are not accepted', (
+      tester,
+    ) async {
       // Arrange
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act - Fill valid form but don't accept terms
-  final emailField = find.widgetWithText(TextFormField, 'Correo electrónico *');
+      final emailField = find.widgetWithText(
+        TextFormField,
+        'Correo electrónico *',
+      );
       await tester.enterText(emailField, 'test@example.com');
-  final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
+      final passwordField = find.widgetWithText(TextFormField, 'Contraseña *');
       await tester.enterText(passwordField, 'Password123');
-  final confirmPasswordField = find.widgetWithText(TextFormField, 'Confirmar contraseña *');
+      final confirmPasswordField = find.widgetWithText(
+        TextFormField,
+        'Confirmar contraseña *',
+      );
       await tester.enterText(confirmPasswordField, 'Password123');
 
       final createAccountButton = find.text('Crear Cuenta').last;
@@ -155,15 +198,20 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Debes aceptar los términos y condiciones'), findsOneWidget);
+      expect(
+        find.text('Debes aceptar los términos y condiciones'),
+        findsOneWidget,
+      );
     });
 
-    testWidgets('should navigate to login when login link is tapped', (tester) async {
+    testWidgets('should navigate to login when login link is tapped', (
+      tester,
+    ) async {
       // Arrange
       await tester.pumpWidget(createWidgetUnderTest());
 
       // Act
-  final loginLink = find.text('Inicia sesión');
+      final loginLink = find.text('Inicia sesión');
       await tester.tap(loginLink);
       await tester.pumpAndSettle();
 

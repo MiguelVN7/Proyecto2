@@ -40,12 +40,11 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
 
   /// Starts a timer to periodically check email verification status
   void _startVerificationCheck() {
-    _checkVerificationTimer = Timer.periodic(
-      const Duration(seconds: 3),
-      (timer) {
-        context.read<AuthBloc>().add(const AuthUserReloaded());
-      },
-    );
+    _checkVerificationTimer = Timer.periodic(const Duration(seconds: 3), (
+      timer,
+    ) {
+      context.read<AuthBloc>().add(const AuthUserReloaded());
+    });
   }
 
   /// Resends email verification with cooldown protection
@@ -63,18 +62,15 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     _cooldownTimer?.cancel();
-    _cooldownTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        setState(() {
-          _resendCooldown--;
-        });
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _resendCooldown--;
+      });
 
-        if (_resendCooldown <= 0) {
-          timer.cancel();
-        }
-      },
-    );
+      if (_resendCooldown <= 0) {
+        timer.cancel();
+      }
+    });
   }
 
   /// Manually checks verification status
@@ -120,10 +116,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       decoration: BoxDecoration(
                         color: EcoColors.warning.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: EcoColors.warning,
-                          width: 2,
-                        ),
+                        border: Border.all(color: EcoColors.warning, width: 2),
                       ),
                       child: const Icon(
                         Icons.mark_email_unread_outlined,
@@ -146,7 +139,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     const SizedBox(height: 16),
 
                     // Instructions
-                    Text(
+                    const Text(
                       'Te hemos enviado un email de verificación a:',
                       style: TextStyle(
                         fontSize: 16,
@@ -215,7 +208,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     // Resend verification button
                     BlocBuilder<AuthBloc, AuthState>(
                       builder: (context, state) {
-                        final isLoading = state is AuthAwaitingVerification && state.isLoading;
+                        final isLoading =
+                            state is AuthAwaitingVerification &&
+                            state.isLoading;
                         final canResend = _resendCooldown <= 0 && !isLoading;
 
                         return OutlinedButton.icon(
@@ -224,7 +219,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                               ? const SizedBox(
                                   height: 16,
                                   width: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.send),
                           label: Text(
@@ -323,19 +320,21 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                       decoration: BoxDecoration(
                         color: EcoColors.info.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: EcoColors.info.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: EcoColors.info.withValues(alpha: 0.3),
+                        ),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.info_outline,
                                 color: EcoColors.info,
                                 size: 20,
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Text(
                                 'Consejos útiles:',
                                 style: TextStyle(
@@ -346,8 +345,8 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             '• Revisa tu bandeja de entrada y carpeta de spam\n'
                             '• El email puede tardar unos minutos en llegar\n'
                             '• Asegúrate de tener conexión a internet\n'
@@ -382,7 +381,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                     const SizedBox(height: 20),
 
                     // App version
-                    Center(
+                    const Center(
                       child: Text(
                         'EcoTrack v1.0.0',
                         style: TextStyle(

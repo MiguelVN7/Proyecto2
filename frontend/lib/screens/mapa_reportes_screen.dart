@@ -3,6 +3,7 @@
 /// This screen shows all submitted reports as markers on a Google Maps view,
 /// allowing users to visualize the geographic distribution of environmental issues.
 /// Each marker displays report details including classification and location.
+library;
 
 // Flutter imports:
 import 'package:flutter/material.dart';
@@ -58,9 +59,9 @@ class _MapaReportesScreenState extends State<MapaReportesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.location_off, size: 64, color: EcoColors.secondary),
+          const Icon(Icons.location_off, size: 64, color: EcoColors.secondary),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'No reports available',
             style: TextStyle(
               fontSize: 18,

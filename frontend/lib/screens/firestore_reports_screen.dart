@@ -1,6 +1,7 @@
 // Flutter imports:
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -37,9 +38,9 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
             // Header with filters
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: EcoColors.primary,
-                borderRadius: const BorderRadius.only(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(24),
                   bottomRight: Radius.circular(24),
                 ),
@@ -224,9 +225,9 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 64, color: EcoColors.error),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             'Error loading reports',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: EcoColors.textPrimary,
@@ -269,7 +270,7 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
           Text(
             _selectedStatus == 'all'
                 ? 'No reports yet'
-                : 'No ${_selectedStatus} reports',
+                : 'No $_selectedStatus reports',
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -301,6 +302,23 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
 
   /// Build a small thumbnail for a report, supporting URL or base64 data
   Widget _buildThumbnail(Reporte report, {double size = 60}) {
+    Uint8List? tryDecodeBase64(String raw) {
+      try {
+        var normalized = raw.trim();
+        final commaIndex = normalized.indexOf(',');
+        if (normalized.startsWith('data:') && commaIndex >= 0) {
+          normalized = normalized.substring(commaIndex + 1);
+        }
+        normalized = normalized.replaceAll(RegExp(r'\s'), '');
+        final pad = normalized.length % 4;
+        if (pad != 0)
+          normalized = normalized.padRight(normalized.length + (4 - pad), '=');
+        return base64Decode(normalized);
+      } catch (_) {
+        return null;
+      }
+    }
+
     Widget placeholder = Container(
       width: size,
       height: size,
@@ -324,24 +342,22 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
     }
 
     if (report.fotoBase64 != null && report.fotoBase64!.isNotEmpty) {
-      try {
-        final dataUrl = report.fotoBase64!;
-        final commaIndex = dataUrl.indexOf(',');
-        final base64Part = commaIndex >= 0
-            ? dataUrl.substring(commaIndex + 1)
-            : dataUrl;
-        final bytes = base64Decode(base64Part);
+      final bytes = tryDecodeBase64(report.fotoBase64!);
+      if (bytes != null) {
         return SizedBox(
           width: size,
           height: size,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.memory(bytes, fit: BoxFit.cover),
+            child: Image.memory(
+              bytes,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+            ),
           ),
         );
-      } catch (_) {
-        return placeholder;
       }
+      return placeholder;
     }
 
     return placeholder;

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart'
     show kReleaseMode; // Detectar modo release vs debug
@@ -18,6 +17,7 @@ import 'models/reporte.dart';
 import 'screens/mapa_reportes_screen.dart';
 import 'screens/firestore_reports_screen.dart';
 import 'screens/user_profile_screen.dart';
+import 'screens/home_screen.dart';
 import 'services/fcm_service.dart';
 import 'services/firestore_service.dart';
 import 'core/routing/app_router.dart';
@@ -45,7 +45,7 @@ void main() async {
     );
     if (appCheckEnabled) {
       try {
-        final AndroidProvider selectedAndroidProvider = kReleaseMode
+        const AndroidProvider selectedAndroidProvider = kReleaseMode
             ? AndroidProvider.playIntegrity
             : AndroidProvider.debug;
         await FirebaseAppCheck.instance.activate(
@@ -199,7 +199,8 @@ class EcoTrackApp extends StatelessWidget {
 final List<Reporte> reportesEjemplo = [
   Reporte.create(
     id: '1',
-    fotoUrl: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
+    fotoUrl:
+        'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Calle 1 #2-3',
     clasificacion: 'Plástico',
     tipoResiduo: 'Plástico',
@@ -210,7 +211,8 @@ final List<Reporte> reportesEjemplo = [
   ),
   Reporte.create(
     id: '2',
-    fotoUrl: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
+    fotoUrl:
+        'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=100&q=80',
     ubicacion: 'Carrera 45 #10-20',
     clasificacion: 'Vidrio',
     tipoResiduo: 'Vidrio',
@@ -221,6 +223,7 @@ final List<Reporte> reportesEjemplo = [
   ),
   // More example reports can be added here
 ];
+
 class MainScreen extends StatefulWidget {
   /// Creates the main screen with navigation.
   const MainScreen({super.key});
@@ -313,9 +316,9 @@ class _MainScreenState extends State<MainScreen> {
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         height: kBottomNavigationBarHeight + 24,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: EcoColors.primary,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(45),
             topRight: Radius.circular(45),
           ),
@@ -374,214 +377,4 @@ class _MainScreenState extends State<MainScreen> {
 /// - Points display
 /// - Current report status
 /// - App version information
-class HomeScreen extends StatefulWidget {
-  /// Creates the home screen dashboard.
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-/// State class for HomeScreen managing version info and UI updates.
-class _HomeScreenState extends State<HomeScreen> {
-  /// Current app version string displayed in the header.
-  String _appVersion = 'Loading...';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadVersionInfo();
-  }
-
-  /// Loads the application version information.
-  ///
-  /// Retrieves version and build number from package info,
-  /// falling back to default values if unavailable.
-  Future<void> _loadVersionInfo() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _appVersion = 'v${packageInfo.version}+${packageInfo.buildNumber}';
-      });
-    } catch (e) {
-      setState(() {
-        _appVersion = 'v1.0.0+2';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: EcoColors.primary,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Background sections: green header + light content area
-            Column(
-              children: [
-                Container(
-                  height: 100,
-                  color: EcoColors.primary,
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Home',
-                        style: TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: EcoColors.onPrimary,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: EcoColors.onPrimary.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          _appVersion,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: EcoColors.onPrimary.withOpacity(0.8),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Light/beige background below header
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: EcoColors.surface,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(45),
-                      ),
-                    ),
-                    width: double.infinity,
-                  ),
-                ),
-              ],
-            ),
-
-            // Current achievement progress box
-            Positioned(
-              top: 120,
-              left: 20,
-              right: 20,
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: EcoColors.surface,
-                  borderRadius: BorderRadius.circular(45),
-                  border: Border.all(color: EcoColors.accent, width: 4),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Current Achievement Progress',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-
-            // Row between boxes: circle + square
-            Positioned(
-              top:
-                  335, // Position between upper box (bottom ~380) and lower box (top 500)
-              left: 40,
-              right: 40,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Circle
-                  Expanded(
-                    child: Container(
-                      height: 120,
-                      margin: const EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        color: EcoColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: EcoColors.secondary,
-                          width: 4,
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Progress to\nNext\nLevel',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Square
-                  Expanded(
-                    child: Container(
-                      height: 120,
-                      margin: const EdgeInsets.only(left: 10),
-                      decoration: BoxDecoration(
-                        color: EcoColors.surface,
-                        border: Border.all(
-                          color: EcoColors.secondary,
-                          width: 4,
-                        ),
-                        borderRadius: BorderRadius.circular(45),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Points',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Current report box
-            Positioned(
-              top: 500,
-              left: 20,
-              right: 20,
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: EcoColors.surface,
-                  borderRadius: BorderRadius.circular(45),
-                  border: Border.all(color: EcoColors.accent, width: 4),
-                ),
-                child: const Center(
-                  child: Text(
-                    'Current Report',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ),
-
-            // Here you can add more content below the card (e.g. widget rows)
-          ],
-        ),
-      ),
-    );
-  }
-}
+// HomeScreen now lives in screens/home_screen.dart

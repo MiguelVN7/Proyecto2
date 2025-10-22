@@ -466,7 +466,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
                 // Camera switch button
                 if (_cameras != null && _cameras!.length > 1)
-                  Container(
+                  DecoratedBox(
                     decoration: BoxDecoration(
                       color: Colors.black.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(25),
@@ -730,15 +730,11 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Analysis result
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(
-                        Icons.recycling,
-                        color: Colors.green,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
+                      Icon(Icons.recycling, color: Colors.green, size: 24),
+                      SizedBox(width: 12),
+                      Text(
                         'Classification:',
                         style: TextStyle(
                           color: Colors.white,
@@ -769,15 +765,11 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
                   const SizedBox(height: 20),
 
                   // Location
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(
-                        Icons.location_on,
-                        color: Colors.blue,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
+                      Icon(Icons.location_on, color: Colors.blue, size: 24),
+                      SizedBox(width: 12),
+                      Text(
                         'Location:',
                         style: TextStyle(
                           color: Colors.white,
@@ -914,7 +906,7 @@ class ReportSuccessScreen extends StatelessWidget {
               Container(
                 width: 100,
                 height: 100,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.green,
                   shape: BoxShape.circle,
                 ),

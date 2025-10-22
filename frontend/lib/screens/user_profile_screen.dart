@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -158,10 +159,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                     // Body
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
+                      child: DecoratedBox(
+                        decoration: const BoxDecoration(
                           color: EcoColors.surface,
-                          borderRadius: const BorderRadius.vertical(
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(45),
                           ),
                         ),
@@ -396,7 +397,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String _formatDate(DateTime dt) {
     // Formato compacto: dd/MM HH:mm
     final d = dt.toLocal();
-    final two = (int n) => n.toString().padLeft(2, '0');
+    String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.day)}/${two(d.month)} ${two(d.hour)}:${two(d.minute)}';
   }
 
@@ -515,14 +516,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (photoUrl == null || photoUrl.isEmpty) {
       return const Icon(Icons.person, color: EcoColors.primary, size: 28);
     }
-    if (photoUrl.startsWith('data:image')) {
-      try {
-        final base64Str = photoUrl.split(',').last;
-        final bytes = base64Decode(base64Str);
-        return ClipOval(child: Image.memory(bytes, fit: BoxFit.cover));
-      } catch (_) {
-        return const Icon(Icons.person, color: EcoColors.primary, size: 28);
+    if (photoUrl.startsWith('data:')) {
+      Uint8List? decode(String raw) {
+        try {
+          var normalized = raw.trim();
+          final commaIndex = normalized.indexOf(',');
+          if (commaIndex >= 0)
+            normalized = normalized.substring(commaIndex + 1);
+          normalized = normalized.replaceAll(RegExp(r'\s'), '');
+          final pad = normalized.length % 4;
+          if (pad != 0)
+            normalized = normalized.padRight(
+              normalized.length + (4 - pad),
+              '=',
+            );
+          return base64Decode(normalized);
+        } catch (_) {
+          return null;
+        }
       }
+
+      final bytes = decode(photoUrl);
+      if (bytes != null) {
+        return ClipOval(
+          child: Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true),
+        );
+      }
+      return const Icon(Icons.person, color: EcoColors.primary, size: 28);
     }
     return ClipOval(
       child: Image.network(

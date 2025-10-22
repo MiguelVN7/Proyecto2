@@ -1,4 +1,6 @@
 /// Utilidades de geolocalización usadas por HU-21 y pruebas.
+library;
+
 import 'dart:math';
 
 class GeoUtils {
@@ -14,7 +16,8 @@ class GeoUtils {
 
     final dLat = toRad(lat2 - lat1);
     final dLon = toRad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(toRad(lat1)) * cos(toRad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
     return earthRadius * c;

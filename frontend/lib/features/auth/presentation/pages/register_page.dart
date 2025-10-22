@@ -53,13 +53,15 @@ class _RegisterPageState extends State<RegisterPage> {
         return;
       }
 
-      context.read<AuthBloc>().add(AuthRegisterRequested(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            displayName: _displayNameController.text.trim().isNotEmpty
-                ? _displayNameController.text.trim()
-                : null,
-          ));
+      context.read<AuthBloc>().add(
+        AuthRegisterRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          displayName: _displayNameController.text.trim().isNotEmpty
+              ? _displayNameController.text.trim()
+              : null,
+        ),
+      );
     }
   }
 
@@ -117,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
 
                     // Title
-                    Text(
+                    const Text(
                       'Crear Cuenta',
                       style: TextStyle(
                         fontSize: 32,
@@ -129,7 +131,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                     const SizedBox(height: 8),
 
-                    Text(
+                    const Text(
                       'Únete a la comunidad ambiental',
                       style: TextStyle(
                         fontSize: 16,
@@ -152,7 +154,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       textInputAction: TextInputAction.next,
@@ -172,7 +177,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -199,7 +207,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                           onPressed: () {
                             setState(() {
@@ -212,7 +222,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       obscureText: _obscurePassword,
@@ -242,11 +255,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                            _obscureConfirmPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -255,15 +271,19 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       obscureText: _obscureConfirmPassword,
                       textInputAction: TextInputAction.done,
-                      validator: (value) => PasswordValidator.validateConfirmation(
-                        _passwordController.text,
-                        value,
-                      ),
+                      validator: (value) =>
+                          PasswordValidator.validateConfirmation(
+                            _passwordController.text,
+                            value,
+                          ),
                     ),
 
                     const SizedBox(height: 24),
@@ -287,7 +307,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _acceptTerms = !_acceptTerms;
                               });
                             },
-                            child: Text(
+                            child: const Text(
                               'Acepto los términos y condiciones y la política de privacidad',
                               style: TextStyle(
                                 fontSize: 14,
@@ -323,7 +343,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(EcoColors.onPrimary),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      EcoColors.onPrimary,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -343,7 +365,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           '¿Ya tienes cuenta? ',
                           style: TextStyle(
                             fontSize: 14,
@@ -392,7 +414,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Requisitos de contraseña:',
             style: TextStyle(
               fontSize: 12,
@@ -401,38 +423,26 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           const SizedBox(height: 4),
-          ...messages.map((message) => Row(
-            children: [
-              Icon(
-                Icons.close,
-                size: 16,
-                color: EcoColors.error,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                message,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: EcoColors.error,
-                ),
-              ),
-            ],
-          )),
-          if (messages.isEmpty)
-            Row(
+          ...messages.map(
+            (message) => Row(
               children: [
-                Icon(
-                  Icons.check,
-                  size: 16,
-                  color: EcoColors.success,
-                ),
+                const Icon(Icons.close, size: 16, color: EcoColors.error),
                 const SizedBox(width: 4),
                 Text(
+                  message,
+                  style: const TextStyle(fontSize: 12, color: EcoColors.error),
+                ),
+              ],
+            ),
+          ),
+          if (messages.isEmpty)
+            const Row(
+              children: [
+                Icon(Icons.check, size: 16, color: EcoColors.success),
+                SizedBox(width: 4),
+                Text(
                   'Contraseña válida',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: EcoColors.success,
-                  ),
+                  style: TextStyle(fontSize: 12, color: EcoColors.success),
                 ),
               ],
             ),

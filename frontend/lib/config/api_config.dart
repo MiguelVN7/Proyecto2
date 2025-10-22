@@ -3,6 +3,7 @@
 /// This configuration handles the difference between development on
 /// different platforms (macOS, Android, iOS) and ensures the correct
 /// backend URL is used for each platform.
+library;
 
 import 'dart:io';
 import 'package:flutter/foundation.dart';

@@ -37,10 +37,12 @@ class _LoginPageState extends State<LoginPage> {
 
   void _onLoginPressed() {
     if (_formKey.currentState?.validate() ?? false) {
-      context.read<AuthBloc>().add(AuthLoginRequested(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          ));
+      context.read<AuthBloc>().add(
+        AuthLoginRequested(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        ),
+      );
     }
   }
 
@@ -99,9 +101,9 @@ class _LoginPageState extends State<LoginPage> {
                 if (formKey.currentState?.validate() ?? false) {
                   final email = controller.text.trim();
                   Navigator.of(ctx).pop();
-                  context
-                      .read<AuthBloc>()
-                      .add(AuthPasswordResetRequested(email: email));
+                  context.read<AuthBloc>().add(
+                    AuthPasswordResetRequested(email: email),
+                  );
                 }
               },
               child: const Text('Enviar enlace'),
@@ -210,7 +212,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -237,7 +242,9 @@ class _LoginPageState extends State<LoginPage> {
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                           ),
                           onPressed: () {
                             setState(() {
@@ -250,7 +257,10 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: EcoColors.primary, width: 2),
+                          borderSide: const BorderSide(
+                            color: EcoColors.primary,
+                            width: 2,
+                          ),
                         ),
                       ),
                       obscureText: _obscurePassword,
@@ -332,7 +342,9 @@ class _LoginPageState extends State<LoginPage> {
                                   width: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(EcoColors.onPrimary),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      EcoColors.onPrimary,
+                                    ),
                                   ),
                                 )
                               : const Text(
@@ -349,13 +361,11 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 32),
 
                     // Divider with "OR"
-                    Row(
+                    const Row(
                       children: [
-                        const Expanded(
-                          child: Divider(color: EcoColors.grey300),
-                        ),
+                        Expanded(child: Divider(color: EcoColors.grey300)),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
                             'O',
                             style: TextStyle(
@@ -365,9 +375,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        const Expanded(
-                          child: Divider(color: EcoColors.grey300),
-                        ),
+                        Expanded(child: Divider(color: EcoColors.grey300)),
                       ],
                     ),
 
@@ -402,7 +410,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
 
                     // Version info or additional links
-                    Center(
+                    const Center(
                       child: Text(
                         'EcoTrack v1.0.0',
                         style: TextStyle(
