@@ -454,12 +454,14 @@ enum NotificationType {
     switch (status) {
       case ReportStatus.received:
         return NotificationType.reportReceived;
-      case ReportStatus.enRoute:
+      case ReportStatus.assigned:
         return NotificationType.reportInProgress;
-      case ReportStatus.collected:
-        return NotificationType.reportCollected;
+      case ReportStatus.inProgress:
+        return NotificationType.reportInProgress;
       case ReportStatus.completed:
         return NotificationType.reportCompleted;
+      case ReportStatus.cancelled:
+        return NotificationType.reportCollected;
       case ReportStatus.pending:
         return null; // No notification for pending status
     }

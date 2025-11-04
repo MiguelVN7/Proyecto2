@@ -5,6 +5,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const firestoreService = require('./firestore_service');
 const fcmService = require('./fcm_service');
+const aiService = require('./ai_classification_service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -34,21 +35,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Endpoint principal: Recibir reportes
+// Endpoint principal para recibir reportes
 app.post('/api/reports', async (req, res) => {
   try {
-    const {
-      photo,
-      latitude,
-      longitude,
-      accuracy,
-      classification,
-      timestamp,
-      device_info
-    } = req.body;
+    console.log('📨 POST /api/reports - Request received');
+    console.log('📋 Request body keys:', Object.keys(req.body));
+    console.log('📋 Request headers:', req.headers);
+    
+    const { photo, latitude, longitude, accuracy, classification, timestamp, device_info } = req.body;
 
     // Validar datos requeridos
     if (!photo || !latitude || !longitude || !classification) {
+      console.log('❌ Validation failed - Missing required fields');
       return res.status(400).json({
         success: false,
         message: 'Faltan datos requeridos: photo, latitude, longitude, classification'
@@ -86,8 +84,40 @@ app.post('/api/reports', async (req, res) => {
       created_at: new Date().toISOString()
     };
 
-    // Guardar reporte en Firestore
-    await db.insertReport(report);
+    // 🤖 AI Classification: Classify the image using Google Vision AI
+    if (imagePath) {
+      try {
+        console.log(`🤖 Calling AI classification for image: ${imagePath}`);
+        const aiResult = await aiService.classifyWasteImage(imagePath);
+        
+        if (aiResult.success) {
+          // Add AI classification data to report
+          report.ai_confidence = aiResult.confidence;
+          report.ai_processing_time_ms = aiResult.processingTime;
+          report.ai_model_version = aiResult.modelVersion;
+          report.ai_classified_at = new Date().toISOString();
+          report.is_ai_classified = true;
+          
+          // If AI confidence is high, you can optionally override the classification
+          // For now, we keep both: user's classification and AI's suggestion
+          report.ai_suggested_classification = aiResult.category;
+          
+          console.log(`🎯 AI Classification: ${aiResult.category} (${(aiResult.confidence * 100).toFixed(1)}% confidence)`);
+        } else {
+          console.warn(`⚠️  AI classification failed: ${aiResult.error}`);
+          report.is_ai_classified = false;
+        }
+      } catch (aiError) {
+        console.error('❌ Error in AI classification:', aiError.message);
+        report.is_ai_classified = false;
+        // Continue even if AI fails - don't block report submission
+      }
+    }
+
+    // ⚠️ SKIP Firestore save from backend - let the app handle it
+    // The app will receive AI classification data and save everything to Firestore
+    // This avoids credential issues on the backend
+    console.log('✅ Report processed successfully (AI classification completed)');
 
     // Guardar reporte en archivo JSON (respaldo opcional)
     const reportPath = path.join(reportsDir, `${fullReportId}.json`);
@@ -97,6 +127,9 @@ app.post('/api/reports', async (req, res) => {
     console.log(`📄 Nuevo reporte recibido: ${fullReportId}`);
     console.log(`📍 Ubicación: ${latitude}, ${longitude} (±${accuracy}m)`);
     console.log(`🗂️ Clasificación: ${classification}`);
+    if (report.is_ai_classified) {
+      console.log(`🤖 AI Suggestion: ${report.ai_suggested_classification} (${(report.ai_confidence * 100).toFixed(1)}%)`);
+    }
     console.log(`💾 Guardado en: ${reportPath}`);
 
     // Send notification for new report received (optional - for admin notifications)
@@ -121,7 +154,15 @@ app.post('/api/reports', async (req, res) => {
         location: report.location,
         classification: report.classification,
         status: report.status
-      }
+      },
+      // Include AI classification data if available
+      ai_classification: report.is_ai_classified ? {
+        confidence: parseFloat(report.ai_confidence), // Ensure it's a float
+        suggested_classification: report.ai_suggested_classification,
+        model_version: report.ai_model_version,
+        processing_time_ms: report.ai_processing_time_ms,
+        classified_at: report.ai_classified_at
+      } : null
     });
 
   } catch (error) {
@@ -394,9 +435,9 @@ app.get('/api/reports', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
     const offset = parseInt(req.query.offset) || 0;
-    
+
     const reports = await db.getAllReports(limit, offset);
-    
+
     res.json({
       success: true,
       count: reports.length,
@@ -415,6 +456,84 @@ app.get('/api/reports', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error listando reportes'
+    });
+  }
+});
+
+// Endpoint para actualizar URLs de fotos después de cambio de IP
+app.post('/api/admin/fix-photo-urls', async (req, res) => {
+  try {
+    const os = require('os');
+
+    // Get current IP
+    const interfaces = os.networkInterfaces();
+    let currentIP = 'localhost';
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          currentIP = iface.address;
+          break;
+        }
+      }
+    }
+
+    console.log(`🔧 Fixing photo URLs with current IP: ${currentIP}`);
+
+    // Use the Firestore instance from the initialized service
+    if (!db.db) {
+      return res.status(500).json({
+        success: false,
+        message: 'Firestore service not initialized'
+      });
+    }
+
+    const reportsSnapshot = await db.db.collection('reports').get();
+
+    let updatedCount = 0;
+    let skippedCount = 0;
+
+    for (const doc of reportsSnapshot.docs) {
+      const data = doc.data();
+      const oldUrl = data.foto_url || '';
+
+      if (oldUrl && oldUrl.includes('http://') && oldUrl.includes(':3000')) {
+        const urlMatch = oldUrl.match(/\/images\/(ECO-[A-F0-9]+\.(jpeg|jpg|png))/i);
+
+        if (urlMatch) {
+          const imageFilename = urlMatch[1];
+          const newUrl = `http://${currentIP}:3000/images/${imageFilename}`;
+
+          if (oldUrl !== newUrl) {
+            await doc.ref.update({
+              foto_url: newUrl,
+              updated_at: new Date().toISOString()
+            });
+
+            updatedCount++;
+          } else {
+            skippedCount++;
+          }
+        }
+      } else {
+        skippedCount++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Photo URLs updated successfully',
+      current_ip: currentIP,
+      updated: updatedCount,
+      skipped: skippedCount,
+      total: reportsSnapshot.size
+    });
+
+  } catch (error) {
+    console.error('❌ Error fixing photo URLs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fixing photo URLs',
+      error: error.message
     });
   }
 });

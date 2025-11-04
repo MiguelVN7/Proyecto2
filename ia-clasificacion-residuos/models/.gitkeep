@@ -1,0 +1,3 @@
+# Placeholder for model file
+# Place your trained model here as: waste_classifier_v1.h5
+# Until then, the service will use a dummy model for testing

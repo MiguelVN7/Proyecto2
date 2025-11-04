@@ -47,6 +47,11 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   image_picker: ^1.1.2
 
+  # Map libraries (OpenStreetMap - no API key required)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  flutter_map_marker_cluster: ^1.3.6
+
   # Authentication and validation
   email_validator: ^3.0.0
   flutter_bloc: ^8.1.6

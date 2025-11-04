@@ -167,6 +167,40 @@ class FirestoreService {
     Reporte report, {
     int duplicatePenaltyPercent = 0,
   }) async {
+    return _createReportInternal(
+      report,
+      duplicatePenaltyPercent: duplicatePenaltyPercent,
+    );
+  }
+
+  /// Creates a report with AI classification data
+  Future<String?> createReportWithAI(
+    Reporte report, {
+    required double aiConfidence,
+    required String aiSuggestedClassification,
+    required String aiModelVersion,
+    required int aiProcessingTimeMs,
+    int duplicatePenaltyPercent = 0,
+  }) async {
+    return _createReportInternal(
+      report,
+      duplicatePenaltyPercent: duplicatePenaltyPercent,
+      aiConfidence: aiConfidence,
+      aiSuggestedClassification: aiSuggestedClassification,
+      aiModelVersion: aiModelVersion,
+      aiProcessingTimeMs: aiProcessingTimeMs,
+    );
+  }
+
+  /// Internal method to create a report (with optional AI data)
+  Future<String?> _createReportInternal(
+    Reporte report, {
+    int duplicatePenaltyPercent = 0,
+    double? aiConfidence,
+    String? aiSuggestedClassification,
+    String? aiModelVersion,
+    int? aiProcessingTimeMs,
+  }) async {
     try {
       debugPrint('📝 Creating report in Firestore: ${report.id}');
 
@@ -197,6 +231,21 @@ class FirestoreService {
         baseData['created_at'] = Timestamp.now();
       }
       baseData['updated_at'] = Timestamp.now();
+
+      // Add AI classification fields if provided
+      if (aiConfidence != null && aiSuggestedClassification != null) {
+        baseData['is_ai_classified'] = true;
+        baseData['ai_confidence'] = aiConfidence;
+        baseData['ai_suggested_classification'] = aiSuggestedClassification;
+        baseData['ai_model_version'] = aiModelVersion ?? 'google-vision-v1';
+        baseData['ai_processing_time_ms'] = aiProcessingTimeMs ?? 0;
+        baseData['ai_classified_at'] = Timestamp.now();
+        debugPrint(
+          '🤖 Adding AI fields: ${aiSuggestedClassification} (${(aiConfidence * 100).toStringAsFixed(1)}%)',
+        );
+      } else {
+        baseData['is_ai_classified'] = false;
+      }
 
       // Merge to avoid overwriting previously set award fields
       try {
@@ -498,11 +547,11 @@ class FirestoreService {
     int limit = 50,
     String? userId,
   }) {
-    debugPrint('📡 Setting up reports stream by status: ${status.displayName}');
+    debugPrint('📡 Setting up reports stream by status: ${status.displayName} (${status.firestoreValue})');
 
     Query<Map<String, dynamic>> query = _firestore
         .collection(_reportsCollection)
-        .where('estado', isEqualTo: status.displayName)
+        .where('estado', isEqualTo: status.firestoreValue)
         .orderBy('created_at', descending: true)
         .limit(limit);
 

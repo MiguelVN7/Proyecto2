@@ -1,0 +1,20 @@
+{
+  "id": "ECO-E47751FB",
+  "timestamp": "2025-10-30T12:17:14.476984",
+  "location": {
+    "latitude": 6.2076102,
+    "longitude": -75.5483065,
+    "accuracy": 10
+  },
+  "classification": "Lata de aluminio",
+  "device_info": "android",
+  "image_path": "/images/ECO-E47751FB.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:17:10.670Z",
+  "ai_confidence": 0.2531726002693176,
+  "ai_processing_time_ms": 847,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:17:11.517Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

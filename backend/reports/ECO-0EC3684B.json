@@ -1,0 +1,20 @@
+{
+  "id": "ECO-0EC3684B",
+  "timestamp": "2025-10-26T17:45:45.082048",
+  "location": {
+    "latitude": 6.1749303,
+    "longitude": -75.5426433,
+    "accuracy": 10
+  },
+  "classification": "Papel de periódico",
+  "device_info": "android",
+  "image_path": "/images/ECO-0EC3684B.jpeg",
+  "status": "received",
+  "created_at": "2025-10-26T22:45:41.842Z",
+  "ai_confidence": 0.697433203458786,
+  "ai_processing_time_ms": 808,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-26T22:45:42.651Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

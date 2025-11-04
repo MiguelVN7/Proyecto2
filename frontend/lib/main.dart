@@ -305,7 +305,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const FirestoreReportsScreen(), // Real-time Firestore reports screen
     const HomeScreen(), // Placeholder for camera (will navigate to separate screen)
-    MapaReportesScreen(reportes: reportesEjemplo), // Map screen with reports
+    const MapaReportesScreen(), // Map screen with real-time Firestore reports
     const UserProfileScreen(),
   ];
 

@@ -12,7 +12,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Project imports:
 import 'colors.dart';
+import 'config/api_config.dart';
 import 'location_service.dart';
+import 'report_service.dart';
 import 'services/firestore_service.dart';
 import 'models/reporte.dart';
 
@@ -544,52 +546,10 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
     });
 
     try {
-      // New path: Save report directly to Firestore (Storage + Firestore)
-      debugPrint('📤 Uploading image and creating report in Firestore...');
-
       // Parse location from string "lat, lon"
       final locationParts = widget.locationInfo.split(',');
       final latitude = double.parse(locationParts[0].trim());
       final longitude = double.parse(locationParts[1].trim());
-
-      // Generate a Firestore document ID for the report
-      final reportId = FirebaseFirestore.instance
-          .collection('reports')
-          .doc()
-          .id;
-
-      // Fallback path: create a small base64 thumbnail instead of using Storage
-      String base64Thumb;
-      try {
-        base64Thumb = await FirestoreService().createBase64Thumbnail(
-          File(widget.imagePath),
-          maxSide: 256,
-          quality: 60,
-        );
-      } catch (e) {
-        debugPrint(
-          '⚠️ Thumbnail generation failed at 256/60, retrying smaller: $e',
-        );
-        base64Thumb = await FirestoreService().createBase64Thumbnail(
-          File(widget.imagePath),
-          maxSide: 192,
-          quality: 55,
-        );
-      }
-
-      // Build report model
-      final report = Reporte.create(
-        id: reportId,
-        fotoUrl: '',
-        fotoBase64: base64Thumb,
-        ubicacion: widget.locationInfo,
-        clasificacion: widget.analysisResult,
-        tipoResiduo: widget.analysisResult,
-        lat: latitude,
-        lng: longitude,
-        accuracy: 10.0,
-        deviceInfo: Platform.operatingSystem,
-      );
 
       // HU-21: Pre-validation for nearby duplicate reports (50m radius)
       final nearby = await FirestoreService().findNearbyReports(
@@ -610,17 +570,196 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
         }
       }
 
-      // Create report document in Firestore (with optional penalty)
-      final createdId = await FirestoreService().createReport(
-        report,
-        duplicatePenaltyPercent: duplicatePenaltyPercent,
-      );
-      if (createdId == null) {
-        throw Exception('Failed to create report in Firestore');
+      // 🎯 NEW: Try to send to backend first for AI classification
+      bool backendSuccess = false;
+      String? reportCode;
+      Map<String, dynamic>? aiData;
+
+      try {
+        debugPrint(
+          '🤖 Attempting to send report to backend for AI classification...',
+        );
+        final result = await ReportService.submitReport(
+          imageFile: File(widget.imagePath),
+          latitude: latitude,
+          longitude: longitude,
+          accuracy: 10.0,
+          classification: widget.analysisResult,
+        ).timeout(const Duration(seconds: 15));
+
+        if (result.success) {
+          backendSuccess = true;
+          reportCode = result.reportCode;
+          aiData = result.aiClassification;
+          debugPrint('✅ Report sent to backend successfully: $reportCode');
+          if (aiData != null) {
+            debugPrint('🤖 AI Classification received:');
+            debugPrint('   Category: ${aiData['suggested_classification']}');
+            debugPrint(
+              '   Confidence: ${((aiData['confidence'] as num) * 100).toStringAsFixed(1)}%',
+            );
+          } else {
+            debugPrint('⚠️ No AI classification data received');
+          }
+        } else {
+          debugPrint('⚠️ Backend returned error: ${result.message}');
+        }
+      } catch (e) {
+        debugPrint(
+          '⚠️ Backend not available, falling back to direct Firestore: $e',
+        );
       }
 
-      final reportCode = createdId;
-      debugPrint('✅ Report created in Firestore with code: $reportCode');
+      // Save to Firestore (either with AI data from backend or without)
+      if (backendSuccess && reportCode != null) {
+        // Backend processed successfully - save with AI data
+        debugPrint('💾 Saving to Firestore with AI data from backend...');
+
+        // Determine the classification to use
+        String classificationToUse = widget.analysisResult;
+        String userClassification =
+            widget.analysisResult; // Keep track of what user selected
+
+        // If AI provided a suggestion, use it as the main classification
+        if (aiData != null) {
+          final aiSuggestion = aiData['suggested_classification'] as String?;
+          if (aiSuggestion != null && aiSuggestion.isNotEmpty) {
+            classificationToUse = aiSuggestion;
+            debugPrint(
+              '🤖 Using AI classification: $aiSuggestion (was: $userClassification)',
+            );
+          }
+        }
+
+        // Construct the image URL from backend using ApiConfig
+        // Backend saves images at: http://API_HOST:3000/images/ECO-XXXXXXXX.jpeg
+        final backendUrl = ApiConfig.baseUrl;
+        final imageExtension = widget.imagePath.toLowerCase().endsWith('.png')
+            ? 'png'
+            : 'jpeg';
+        final imageUrl = '$backendUrl/images/$reportCode.$imageExtension';
+        debugPrint('🖼️ Image URL: $imageUrl');
+
+        // Build report model with AI classification
+        final report = Reporte.create(
+          id: reportCode,
+          fotoUrl: imageUrl, // URL de la imagen en el backend
+          fotoBase64: '', // Backend already has the image
+          ubicacion: widget.locationInfo,
+          clasificacion: classificationToUse, // Use AI classification
+          tipoResiduo: classificationToUse,
+          lat: latitude,
+          lng: longitude,
+          accuracy: 10.0,
+          deviceInfo: Platform.operatingSystem,
+        );
+
+        // Add AI fields if available
+        if (aiData != null) {
+          // Handle confidence as num (can be int or double from JSON)
+          final aiConfidence = (aiData['confidence'] as num?)?.toDouble();
+          final aiSuggestion = aiData['suggested_classification'] as String?;
+
+          // Create report in Firestore with AI data
+          try {
+            final createdId = await FirestoreService().createReportWithAI(
+              report,
+              aiConfidence: aiConfidence ?? 0.0,
+              aiSuggestedClassification: aiSuggestion ?? '',
+              aiModelVersion:
+                  aiData['model_version'] as String? ?? 'google-vision-v1',
+              aiProcessingTimeMs:
+                  (aiData['processing_time_ms'] as num?)?.toInt() ?? 0,
+              duplicatePenaltyPercent: duplicatePenaltyPercent,
+            );
+
+            if (createdId == null) {
+              throw Exception(
+                'Failed to create report in Firestore with AI data',
+              );
+            }
+
+            debugPrint(
+              '✅ Report saved to Firestore with AI classification: $classificationToUse',
+            );
+            debugPrint('📊 User originally selected: $userClassification');
+          } catch (e) {
+            debugPrint('❌ Error saving report to Firestore: $e');
+            rethrow;
+          }
+        } else {
+          // Save without AI data
+          try {
+            final createdId = await FirestoreService().createReport(
+              report,
+              duplicatePenaltyPercent: duplicatePenaltyPercent,
+            );
+            if (createdId == null) {
+              throw Exception('Failed to create report in Firestore');
+            }
+            debugPrint('✅ Report saved to Firestore without AI data');
+          } catch (e) {
+            debugPrint('❌ Error saving report to Firestore: $e');
+            rethrow;
+          }
+        }
+      } else {
+        // Fallback: Backend failed, save directly to Firestore (original behavior)
+        debugPrint(
+          '📤 Fallback: Uploading image and creating report in Firestore directly...',
+        );
+
+        // Generate a Firestore document ID for the report
+        final reportId = FirebaseFirestore.instance
+            .collection('reports')
+            .doc()
+            .id;
+
+        // Create a small base64 thumbnail instead of using Storage
+        String base64Thumb;
+        try {
+          base64Thumb = await FirestoreService().createBase64Thumbnail(
+            File(widget.imagePath),
+            maxSide: 256,
+            quality: 60,
+          );
+        } catch (e) {
+          debugPrint(
+            '⚠️ Thumbnail generation failed at 256/60, retrying smaller: $e',
+          );
+          base64Thumb = await FirestoreService().createBase64Thumbnail(
+            File(widget.imagePath),
+            maxSide: 192,
+            quality: 55,
+          );
+        }
+
+        // Build report model
+        final report = Reporte.create(
+          id: reportId,
+          fotoUrl: '',
+          fotoBase64: base64Thumb,
+          ubicacion: widget.locationInfo,
+          clasificacion: widget.analysisResult,
+          tipoResiduo: widget.analysisResult,
+          lat: latitude,
+          lng: longitude,
+          accuracy: 10.0,
+          deviceInfo: Platform.operatingSystem,
+        );
+
+        // Create report document in Firestore (with optional penalty)
+        final createdId = await FirestoreService().createReport(
+          report,
+          duplicatePenaltyPercent: duplicatePenaltyPercent,
+        );
+        if (createdId == null) {
+          throw Exception('Failed to create report in Firestore');
+        }
+
+        reportCode = createdId;
+        debugPrint('✅ Report created in Firestore with code: $reportCode');
+      }
 
       if (mounted) {
         // Show success screen
@@ -628,7 +767,7 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
           context,
           MaterialPageRoute(
             builder: (context) => ReportSuccessScreen(
-              reportCode: reportCode,
+              reportCode: reportCode!,
               wasteType: widget.analysisResult,
               location: widget.locationInfo,
             ),
@@ -729,40 +868,41 @@ class _PhotoConfirmationScreenState extends State<PhotoConfirmationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Classification removed - AI will classify after submitting
                   // Analysis result
-                  const Row(
-                    children: [
-                      Icon(Icons.recycling, color: Colors.green, size: 24),
-                      SizedBox(width: 12),
-                      Text(
-                        'Classification:',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green, width: 1),
-                    ),
-                    child: Text(
-                      widget.analysisResult,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
+                  // const Row(
+                  //   children: [
+                  //     Icon(Icons.recycling, color: Colors.green, size: 24),
+                  //     SizedBox(width: 12),
+                  //     Text(
+                  //       'Classification:',
+                  //       style: TextStyle(
+                  //         color: Colors.white,
+                  //         fontSize: 16,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 8),
+                  // Container(
+                  //   padding: const EdgeInsets.all(12),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.green.withOpacity(0.2),
+                  //     borderRadius: BorderRadius.circular(8),
+                  //     border: Border.all(color: Colors.green, width: 1),
+                  //   ),
+                  //   child: Text(
+                  //     widget.analysisResult,
+                  //     style: const TextStyle(
+                  //       color: Colors.white,
+                  //       fontSize: 18,
+                  //       fontWeight: FontWeight.w600,
+                  //     ),
+                  //   ),
+                  // ),
+                  //
+                  // const SizedBox(height: 20),
 
                   // Location
                   const Row(
@@ -994,31 +1134,32 @@ class ReportSuccessScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 10),
-
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.recycling,
-                          color: Colors.green,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Classification: ',
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                        Expanded(
-                          child: Text(
-                            wasteType,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // Classification removed - AI will classify after backend processing
+                    // const SizedBox(height: 10),
+                    //
+                    // Row(
+                    //   children: [
+                    //     const Icon(
+                    //       Icons.recycling,
+                    //       color: Colors.green,
+                    //       size: 20,
+                    //     ),
+                    //     const SizedBox(width: 8),
+                    //     const Text(
+                    //       'Classification: ',
+                    //       style: TextStyle(color: Colors.white70, fontSize: 14),
+                    //     ),
+                    //     Expanded(
+                    //       child: Text(
+                    //         wasteType,
+                    //         style: const TextStyle(
+                    //           color: Colors.white,
+                    //           fontSize: 14,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),

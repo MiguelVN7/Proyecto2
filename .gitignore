@@ -86,6 +86,9 @@ coverage/
 *.key
 *.pem
 secrets/
+# Firebase Service Account (credenciales sensibles)
+**/firebase-service-account.json
+firebase-service-account.json
 
 # ================= FLUTTER SPECIFIC ==========
 frontend/ios/Runner.xcworkspace/xcuserdata/

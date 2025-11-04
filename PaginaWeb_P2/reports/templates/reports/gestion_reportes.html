@@ -1,0 +1,831 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Gestión de Reportes - EcoTrack{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+<h1><i class="bi bi-geo-alt-fill"></i> Gestión de Reportes y Asignación
+{% if usando_firestore %}
+<span class="badge bg-success ms-2" style="font-size: 0.5em; vertical-align: middle;">
+    <i class="bi bi-cloud-check"></i> Firestore
+</span>
+{% endif %}
+</h1>
+<p class="text-muted mb-4">Selecciona múltiples reportes y asígnalos a una cuadrilla
+{% if usando_firestore %}
+    <small class="text-success">• Datos en tiempo real desde Firestore</small>
+{% endif %}
+</p>
+
+<style>
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .selected-count {
+            padding: 10px 15px;
+            background: #e8eaf6;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+        .reporte-item {
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .reporte-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+        .reporte-item.selected {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+        .reporte-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .reporte-id {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 16px;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        /* Animación de pulso para marcadores seleccionados */
+        @keyframes marker-pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .marker-pulse {
+            animation: marker-pulse 2s infinite;
+        }
+
+        /* Estilos para marcadores seleccionados */
+        .marker-selected {
+            z-index: 1000 !important;
+            font-weight: 600;
+        }
+        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-asignado { background: #d1ecf1; color: #0c5460; }
+        .badge-urgente { background: #f8d7da; color: #721c24; }
+        .badge-alta { background: #f8d7da; color: #721c24; }
+        .badge-media { background: #fff3cd; color: #856404; }
+        .badge-baja { background: #d4edda; color: #155724; }
+        .reporte-body {
+            font-size: 14px;
+            color: #555;
+        }
+        .reporte-body p {
+            margin: 5px 0;
+        }
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Estilos para marcadores del mapa */
+        .marker-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 0, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 0, 0);
+            }
+        }
+        
+        /* Mejorar apariencia de marcadores seleccionados */
+        .leaflet-interactive.marker-selected {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 0, 0.8));
+        }
+    </style>
+
+<div class="card p-4 mb-4">
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select id="filtroEstado" class="form-select">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="asignado">Asignado</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Tipo de Residuo</label>
+            <select id="filtroTipo" class="form-select">
+                <option value="">Todos</option>
+                {% for key, label in tipos_disponibles %}
+                <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Prioridad</label>
+            <select id="filtroPrioridad" class="form-select">
+                <option value="">Todas</option>
+                {% for key, label in prioridades_disponibles %}
+                <option value="{{ key }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Cuadrilla</label>
+            <select id="filtroCuadrilla" class="form-select">
+                <option value="">Todas</option>
+                {% for cuadrilla in cuadrillas %}
+                <option value="{{ cuadrilla.id }}">{{ cuadrilla.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+        <div class="badge bg-info fs-6">
+            <span id="selectedCount">0</span> reportes seleccionados
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary btn-sm" onclick="selectAll()">Seleccionar Todos</button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">Limpiar Selección</button>
+            <button class="btn btn-success btn-sm" id="btnAsignar" disabled onclick="showAssignModal()">
+                <i class="bi bi-arrow-right-circle"></i> Asignar a Cuadrilla
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div class="main-content">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Lista de Reportes ({{ total_reportes }})</h5>
+            </div>
+            <div class="card-body panel-content" id="reportesList">
+                    {% for reporte in reportes %}
+                    <div class="reporte-item" data-id="{{ reporte.id }}" onclick="toggleReporte(this)">
+                        <div class="reporte-header">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="checkbox reporte-checkbox" data-id="{{ reporte.id }}" onclick="event.stopPropagation();">
+                                <span class="reporte-id">#{{ reporte.id }}</span>
+                            </div>
+                            <div>
+                                {% if usando_firestore %}
+                                <span class="badge badge-{{ reporte.estado }}">{{ reporte.estado_display|default:reporte.estado }}</span>
+                                <span class="badge badge-{{ reporte.prioridad }}">{{ reporte.prioridad_display|default:reporte.prioridad }}</span>
+                                {% else %}
+                                <span class="badge badge-{{ reporte.estado }}">{{ reporte.get_estado_display }}</span>
+                                <span class="badge badge-{{ reporte.prioridad }}">{{ reporte.get_prioridad_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="reporte-body">
+                            {% if usando_firestore %}
+                            <p><strong>Tipo:</strong> {{ reporte.tipo_residuo_display|default:reporte.tipo_residuo }}</p>
+                            <p><strong>Dirección:</strong> {{ reporte.direccion }}</p>
+                            {% if reporte.assigned_to_name %}
+                            <p><strong>Asignado a:</strong> {{ reporte.assigned_to_name }}</p>
+                            {% endif %}
+                            {% else %}
+                            <p><strong>Tipo:</strong> {{ reporte.get_tipo_residuo_display }}</p>
+                            <p><strong>Dirección:</strong> {{ reporte.direccion }}</p>
+                            {% if reporte.cuadrilla_asignada %}
+                            <p><strong>Cuadrilla:</strong> {{ reporte.cuadrilla_asignada.nombre }}</p>
+                            {% endif %}
+                            {% endif %}
+                            <p><strong>Fecha:</strong> {{ reporte.fecha_reporte|date:"d/m/Y H:i" }}</p>
+
+                            {% if usando_firestore %}
+                            <!-- Cambiar Estado -->
+                            <div class="estado-change-section" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <label style="font-weight: 600; font-size: 12px; margin: 0;">Cambiar Estado:</label>
+                                    <select class="estado-selector" data-reporte-id="{{ reporte.id }}" data-estado-actual="{{ reporte.estado }}"
+                                            style="flex: 1; padding: 5px 8px; border: 2px solid #ddd; border-radius: 4px; font-size: 13px;"
+                                            onclick="event.stopPropagation();">
+                                        <option value="pendiente" {% if reporte.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                        <option value="asignado" {% if reporte.estado == 'asignado' %}selected{% endif %}>Asignado</option>
+                                        <option value="en_proceso" {% if reporte.estado == 'en_proceso' %}selected{% endif %}>En Proceso</option>
+                                        <option value="resuelto" {% if reporte.estado == 'resuelto' %}selected{% endif %}>Resuelto</option>
+                                        <option value="cancelado" {% if reporte.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                    </select>
+                                    <button class="btn-cambiar-estado btn btn-sm btn-primary"
+                                            data-reporte-id="{{ reporte.id }}"
+                                            style="white-space: nowrap; display: none;"
+                                            type="button"
+                                            onclick="event.stopPropagation();">
+                                        <i class="bi bi-check-circle"></i> Aplicar
+                                    </button>
+                                </div>
+                                <div class="estado-mensaje" style="margin-top: 5px; font-size: 12px; display: none;"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p style="text-align: center; color: #999; padding: 40px;">
+                        No hay reportes para mostrar
+                    </p>
+                    {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-map"></i> Mapa de Ubicaciones</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Asignación -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Asignar Reportes a Cuadrilla
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Seleccione la Cuadrilla</label>
+                    <select id="cuadrillaSelect">
+                        <option value="">-- Seleccione --</option>
+                        {% for cuadrilla in cuadrillas %}
+                        <option value="{{ cuadrilla.id }}">
+                            {{ cuadrilla.nombre }} ({{ cuadrilla.miembros.count }} miembros - {{ cuadrilla.reportes_activos }} activos)
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <p style="color: #666; font-size: 14px;">
+                    Se asignarán <strong id="modalSelectedCount">0</strong> reportes a la cuadrilla seleccionada.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAssignModal()">Cancelar</button>
+                <button class="btn btn-success" onclick="assignReportes()">Confirmar Asignación</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        // Datos de reportes desde Django
+        const reportesData = JSON.parse('{{ reportes_mapa|safe|escapejs }}');
+        let selectedReportes = new Set();
+        let map, markers = [], selectedMarkers = [];
+
+        // Actualizar contador de selecciones
+        function updateSelectionCounter() {
+            const count = selectedReportes.size;
+            const mapHeader = document.querySelector('.card-header h5');
+            if (mapHeader) {
+                if (count > 0) {
+                    mapHeader.innerHTML = `<i class="bi bi-map"></i> Mapa de Ubicaciones <span class="badge bg-primary ms-2">${count} seleccionado${count > 1 ? 's' : ''}</span>`;
+                } else {
+                    mapHeader.innerHTML = `<i class="bi bi-map"></i> Mapa de Ubicaciones`;
+                }
+            }
+        }
+
+        // Inicializar mapa
+        function initMap() {
+            // Prevenir inicialización múltiple
+            if (map) {
+                console.log('Mapa ya inicializado, omitiendo...');
+                return;
+            }
+
+            // Coordenadas por defecto de Medellín
+            let defaultLat = 6.2442;
+            let defaultLng = -75.5812;
+            let defaultZoom = 12;
+
+            // Si hay reportes con coordenadas, calcular el centro y zoom óptimo
+            if (reportesData.length > 0) {
+                const validReportes = reportesData.filter(r => r.lat && r.lng);
+                if (validReportes.length > 0) {
+                    // Calcular bounds de todos los reportes
+                    const lats = validReportes.map(r => r.lat);
+                    const lngs = validReportes.map(r => r.lng);
+
+                    const minLat = Math.min(...lats);
+                    const maxLat = Math.max(...lats);
+                    const minLng = Math.min(...lngs);
+                    const maxLng = Math.max(...lngs);
+
+                    // Centro del área que contiene todos los reportes
+                    defaultLat = (minLat + maxLat) / 2;
+                    defaultLng = (minLng + maxLng) / 2;
+
+                    // Ajustar zoom según la dispersión de los puntos
+                    const latDiff = maxLat - minLat;
+                    const lngDiff = maxLng - minLng;
+                    const maxDiff = Math.max(latDiff, lngDiff);
+
+                    if (maxDiff < 0.01) defaultZoom = 16;
+                    else if (maxDiff < 0.05) defaultZoom = 14;
+                    else if (maxDiff < 0.1) defaultZoom = 13;
+                    else defaultZoom = 12;
+                }
+            }
+
+            try {
+                map = L.map('map').setView([defaultLat, defaultLng], defaultZoom);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // No agregar marcadores inicialmente - solo se crearán cuando se seleccionen
+                console.log(`✓ Mapa inicializado con ${reportesData.length} reportes disponibles`);
+            } catch (error) {
+                console.error('Error al inicializar mapa:', error);
+            }
+        }
+
+        // Crear marcador para reporte seleccionado
+        function createSelectedMarker(reporte) {
+            const color = reporte.prioridad === 'urgente' || reporte.prioridad === 'alta' ? '#dc3545' : 
+                         reporte.prioridad === 'media' ? '#fd7e14' : '#28a745';
+            
+            const marker = L.circleMarker([reporte.lat, reporte.lng], {
+                radius: 12,
+                fillColor: color,
+                color: '#ffff00',
+                weight: 4,
+                opacity: 1,
+                fillOpacity: 1,
+                className: 'marker-selected'
+            }).addTo(map);
+
+            marker.bindPopup(`
+                <div style="text-align: left; min-width: 250px;">
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <strong style="color: #667eea;">📍 Reporte #${reporte.id}</strong>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>📋 Tipo:</strong> ${reporte.tipo}<br>
+                        <strong>🚨 Estado:</strong> <span class="badge badge-${reporte.estado}">${reporte.estado}</span><br>
+                        <strong>⚡ Prioridad:</strong> <span class="badge badge-${reporte.prioridad}">${reporte.prioridad}</span><br>
+                        <strong>📍 Dirección:</strong> ${reporte.direccion}<br>
+                        <strong>👥 Cuadrilla:</strong> ${reporte.cuadrilla}
+                    </div>
+                    ${reporte.descripcion ? `<div style="margin-top: 8px; padding: 5px; background: #f8f9fa; border-radius: 4px;"><strong>📝 Descripción:</strong><br><small>${reporte.descripcion}</small></div>` : ''}
+                    <div style="text-align: center; margin-top: 10px;">
+                        <small style="color: #666; font-style: italic;">
+                            📌 Ubicación exacta del reporte
+                        </small>
+                    </div>
+                </div>
+            `);
+
+            marker.on('click', function() {
+                const checkbox = document.querySelector(`.reporte-checkbox[data-id="${reporte.id}"]`);
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelection();
+                    
+                    // Hacer scroll hacia el reporte en la lista
+                    const reporteItem = checkbox.closest('.reporte-item');
+                    if (reporteItem) {
+                        reporteItem.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center' 
+                        });
+                        
+                        // Resaltado temporal
+                        reporteItem.style.backgroundColor = '#e8f4fd';
+                        setTimeout(() => {
+                            reporteItem.style.backgroundColor = '';
+                        }, 2000);
+                    }
+                }
+            });
+
+            // Agregar animación de pulso
+            marker.getElement()?.classList.add('marker-pulse');
+
+            return marker;
+        }
+
+        // Actualizar marcadores del mapa según selección
+        function updateMapMarkers() {
+            // Limpiar todos los marcadores seleccionados existentes
+            selectedMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            selectedMarkers = [];
+
+            // Crear nuevos marcadores solo para los reportes seleccionados
+            selectedReportes.forEach(reporteId => {
+                const reporte = reportesData.find(r => r.id.toString() === reporteId);
+                if (reporte) {
+                    const marker = createSelectedMarker(reporte);
+                    selectedMarkers.push(marker);
+                }
+            });
+
+            // Si hay marcadores seleccionados, ajustar la vista del mapa para mostrarlos todos
+            if (selectedMarkers.length > 0) {
+                const group = new L.featureGroup(selectedMarkers);
+                
+                // Si solo hay un marcador, centrarlo con zoom específico
+                if (selectedMarkers.length === 1) {
+                    const marker = selectedMarkers[0];
+                    const latLng = marker.getLatLng();
+                    map.setView([latLng.lat, latLng.lng], 16);
+                } else {
+                    // Si hay múltiples marcadores, ajustar bounds con padding
+                    map.fitBounds(group.getBounds().pad(0.2));
+                }
+                
+                // Actualizar contador visual
+                updateSelectionCounter();
+            } else {
+                // Si no hay selecciones, volver a la vista inicial
+                initMap();
+            }
+        }
+
+        function toggleReporte(element) {
+            const checkbox = element.querySelector('.checkbox');
+            checkbox.checked = !checkbox.checked;
+            updateSelection();
+        }
+
+        function updateSelection() {
+            selectedReportes.clear();
+            document.querySelectorAll('.reporte-checkbox:checked').forEach(cb => {
+                selectedReportes.add(cb.dataset.id);
+                cb.closest('.reporte-item').classList.add('selected');
+            });
+            
+            document.querySelectorAll('.reporte-checkbox:not(:checked)').forEach(cb => {
+                cb.closest('.reporte-item').classList.remove('selected');
+            });
+
+            // Actualizar marcadores del mapa
+            updateMapMarkers();
+
+            // Actualizar contador en header del mapa
+            updateSelectionCounter();
+
+            document.getElementById('selectedCount').textContent = selectedReportes.size;
+            document.getElementById('btnAsignar').disabled = selectedReportes.size === 0;
+        }
+
+        function selectAll() {
+            document.querySelectorAll('.reporte-checkbox').forEach(cb => {
+                cb.checked = true;
+                cb.closest('.reporte-item').classList.add('selected');
+            });
+            updateSelection();
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.reporte-checkbox').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.reporte-item').classList.remove('selected');
+            });
+            updateSelection();
+        }
+
+        function showAssignModal() {
+            if (selectedReportes.size === 0) return;
+            document.getElementById('modalSelectedCount').textContent = selectedReportes.size;
+            document.getElementById('assignModal').style.display = 'block';
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').style.display = 'none';
+            document.getElementById('cuadrillaSelect').value = '';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function assignReportes() {
+            const cuadrillaId = document.getElementById('cuadrillaSelect').value;
+            if (!cuadrillaId) {
+                alert('Por favor seleccione una cuadrilla');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('cuadrilla_id', cuadrillaId);
+            selectedReportes.forEach(id => formData.append('reportes_ids[]', id));
+
+            try {
+                const response = await fetch('{% url "asignar_reportes_masivo" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error al asignar reportes: ' + error);
+            }
+        }
+
+        // Event listeners
+        document.querySelectorAll('.reporte-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateSelection);
+        });
+
+        // Filtros
+        document.getElementById('filtroEstado').addEventListener('change', applyFilters);
+        document.getElementById('filtroTipo').addEventListener('change', applyFilters);
+        document.getElementById('filtroPrioridad').addEventListener('change', applyFilters);
+        document.getElementById('filtroCuadrilla').addEventListener('change', applyFilters);
+
+        function applyFilters() {
+            const estado = document.getElementById('filtroEstado').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            const prioridad = document.getElementById('filtroPrioridad').value;
+            const cuadrilla = document.getElementById('filtroCuadrilla').value;
+
+            const params = new URLSearchParams();
+            if (estado) params.append('estado', estado);
+            if (tipo) params.append('tipo', tipo);
+            if (prioridad) params.append('prioridad', prioridad);
+            if (cuadrilla) params.append('cuadrilla', cuadrilla);
+
+            window.location.search = params.toString();
+        }
+
+        // ========== CAMBIAR ESTADO DE REPORTES ==========
+
+        // Detectar cambios en el selector de estado
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('estado-selector')) {
+                const selector = e.target;
+                const reporteId = selector.dataset.reporteId;
+                const estadoActual = selector.dataset.estadoActual;
+                const nuevoEstado = selector.value;
+
+                console.log('📝 Selector cambió:', {
+                    reporteId: reporteId,
+                    desde: estadoActual,
+                    hacia: nuevoEstado
+                });
+
+                // Mostrar botón "Aplicar" si el estado cambió
+                const btnAplicar = selector.parentElement.querySelector('.btn-cambiar-estado');
+                console.log('Botón encontrado:', btnAplicar ? 'Sí' : 'No');
+
+                if (nuevoEstado !== estadoActual) {
+                    console.log('✓ Mostrando botón Aplicar');
+                    btnAplicar.style.display = 'inline-block';
+
+                    // Registrar event listener directamente en el botón
+                    btnAplicar.onclick = async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        console.log('🖱️ Click detectado en botón Aplicar');
+                        await cambiarEstadoReporte(reporteId, nuevoEstado, selector, btnAplicar);
+                    };
+                } else {
+                    console.log('✗ Ocultando botón Aplicar (sin cambios)');
+                    btnAplicar.style.display = 'none';
+                }
+            }
+        });
+
+        // Función para cambiar estado del reporte
+        async function cambiarEstadoReporte(reporteId, nuevoEstado, selector, btn) {
+            const section = btn.closest('.estado-change-section');
+            const mensajeDiv = section.querySelector('.estado-mensaje');
+
+            console.log('Cambiando estado de reporte:', reporteId, 'a:', nuevoEstado);
+
+            // Deshabilitar botón durante la petición
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Actualizando...';
+
+            try {
+                console.log('Enviando petición a:', '{% url "cambiar_estado_reporte" %}');
+                const response = await fetch('{% url "cambiar_estado_reporte" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        reporte_id: reporteId,
+                        estado: nuevoEstado
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Respuesta del servidor:', data);
+
+                if (data.success) {
+                    // Mostrar mensaje de éxito
+                    mensajeDiv.innerHTML = '✅ Estado actualizado correctamente. La app móvil se actualizará en 1-2 segundos.';
+                    mensajeDiv.style.color = '#28a745';
+                    mensajeDiv.style.display = 'block';
+
+                    // Ocultar botón
+                    btn.style.display = 'none';
+
+                    // Actualizar estado actual en el selector
+                    selector.dataset.estadoActual = nuevoEstado;
+
+                    // Actualizar badge de estado en el header
+                    const reporteItem = btn.closest('.reporte-item');
+                    const badges = reporteItem.querySelectorAll('.badge');
+
+                    // El primer badge es el de estado, el segundo es prioridad
+                    const badgeEstado = badges[0];
+                    if (badgeEstado) {
+                        // Remover todas las clases de estado anteriores
+                        badgeEstado.className = 'badge badge-' + nuevoEstado;
+
+                        // Mapeo de estados para mostrar
+                        const estadosDisplay = {
+                            'pendiente': 'Pendiente',
+                            'asignado': 'Asignado',
+                            'en_proceso': 'En Proceso',
+                            'resuelto': 'Resuelto',
+                            'cancelado': 'Cancelado'
+                        };
+                        badgeEstado.textContent = estadosDisplay[nuevoEstado] || nuevoEstado;
+                    }
+
+                    // Ocultar mensaje después de 3 segundos
+                    setTimeout(() => {
+                        mensajeDiv.style.display = 'none';
+                    }, 3000);
+
+                } else {
+                    throw new Error(data.error || 'Error desconocido');
+                }
+
+            } catch (error) {
+                console.error('Error al cambiar estado:', error);
+                mensajeDiv.innerHTML = '❌ Error: ' + error.message;
+                mensajeDiv.style.color = '#dc3545';
+                mensajeDiv.style.display = 'block';
+
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Aplicar';
+            }
+        }
+
+        // Inicializar al cargar
+        window.addEventListener('load', initMap);
+    </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+{% endblock %}

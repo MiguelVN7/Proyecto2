@@ -1,0 +1,20 @@
+{
+  "id": "ECO-BD727FF7",
+  "timestamp": "2025-10-30T12:05:26.138086",
+  "location": {
+    "latitude": 6.2076072,
+    "longitude": -75.5483107,
+    "accuracy": 10
+  },
+  "classification": "Residuo electrónico (celular viejo)",
+  "device_info": "android",
+  "image_path": "/images/ECO-BD727FF7.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:05:22.311Z",
+  "ai_confidence": 0.7358185052871704,
+  "ai_processing_time_ms": 1079,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:05:23.391Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

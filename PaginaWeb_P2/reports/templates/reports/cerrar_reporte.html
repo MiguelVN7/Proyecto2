@@ -1,0 +1,175 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Cerrar Reporte - EcoTrack{% endblock %}
+
+{% block content %}
+<h1><i class="bi bi-camera-fill"></i> Cerrar Reporte con Validación</h1>
+<p class="text-muted mb-4">Reporte #{{ reporte.id }}</p>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<style>
+
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .file-input-wrapper {
+            position: relative;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-input-wrapper:hover {
+            background: #e8eaf6;
+            border-color: #764ba2;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        .file-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .preview-container {
+            margin-top: 20px;
+            display: none;
+        }
+        .preview-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+    </style>
+
+<div class="card p-4 mb-4">
+    <h4>Información del Reporte</h4>
+    <div class="row">
+        <div class="col-md-6 mb-2">
+            <strong>Tipo de Residuo:</strong> {{ reporte.get_tipo_residuo_display }}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Prioridad:</strong> <span class="badge badge-prioridad-{{ reporte.prioridad }}">{{ reporte.get_prioridad_display }}</span>
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Ubicación:</strong> {{ reporte.direccion }}
+        </div>
+        <div class="col-md-6 mb-2">
+            <strong>Fecha Reporte:</strong> {{ reporte.fecha_reporte|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+</div>
+
+<div class="card p-4">
+    <form method="post" enctype="multipart/form-data" id="cerrarForm">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label class="form-label fw-bold">
+                Foto del Lugar Limpio <span class="required">*</span>
+            </label>
+            <div class="file-input-wrapper">
+                <div class="file-icon">📷</div>
+                <p style="color: #666; margin-bottom: 5px;">
+                    <strong>Haz clic o arrastra una imagen aquí</strong>
+                </p>
+                <p style="color: #999; font-size: 14px;">
+                    La foto es obligatoria para validar la recolección
+                </p>
+                <input type="file" name="foto_validacion" id="fotoInput" accept="image/*" required>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" src="" alt="Vista previa" class="img-fluid rounded">
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label for="notas" class="form-label">Notas de Resolución (opcional)</label>
+            <textarea name="notas_resolucion" id="notas" class="form-control" rows="4" placeholder="Describe el trabajo realizado, observaciones, etc."></textarea>
+        </div>
+
+        <div class="d-flex gap-3">
+            <a href="{% url 'reportes_asignados' %}" class="btn btn-secondary flex-fill">
+                <i class="bi bi-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-success flex-fill" id="submitBtn" disabled>
+                <i class="bi bi-check-circle"></i> Cerrar Reporte y Subir Foto
+            </button>
+        </div>
+    </form>
+</div>
+
+    <script>
+        const fotoInput = document.getElementById('fotoInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const submitBtn = document.getElementById('submitBtn');
+
+        fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                    submitBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                submitBtn.disabled = true;
+            }
+        });
+
+        // Drag and drop
+        const wrapper = document.querySelector('.file-input-wrapper');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            wrapper.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            wrapper.addEventListener(eventName, () => {
+                wrapper.style.borderColor = '#764ba2';
+                wrapper.style.background = '#e8eaf6';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            wrapper.addEventListener(eventName, () => {
+                wrapper.style.borderColor = '#667eea';
+                wrapper.style.background = '#f8f9fa';
+            }, false);
+        });
+
+        wrapper.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fotoInput.files = files;
+            fotoInput.dispatchEvent(new Event('change'));
+        }, false);
+    </script>
+{% endblock %}

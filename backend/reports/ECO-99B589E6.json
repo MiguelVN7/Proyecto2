@@ -1,0 +1,20 @@
+{
+  "id": "ECO-99B589E6",
+  "timestamp": "2025-10-26T17:44:10.591681",
+  "location": {
+    "latitude": 6.1748528,
+    "longitude": -75.5427768,
+    "accuracy": 10
+  },
+  "classification": "Vidrio transparente",
+  "device_info": "android",
+  "image_path": "/images/ECO-99B589E6.jpeg",
+  "status": "received",
+  "created_at": "2025-10-26T22:44:07.260Z",
+  "ai_confidence": 0.8179644048213959,
+  "ai_processing_time_ms": 2146,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-26T22:44:09.407Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

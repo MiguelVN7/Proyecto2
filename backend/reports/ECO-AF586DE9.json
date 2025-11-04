@@ -1,0 +1,20 @@
+{
+  "id": "ECO-AF586DE9",
+  "timestamp": "2025-10-30T12:44:41.556473",
+  "location": {
+    "latitude": 6.2076365,
+    "longitude": -75.5483119,
+    "accuracy": 10
+  },
+  "classification": "Vidrio transparente",
+  "device_info": "android",
+  "image_path": "/images/ECO-AF586DE9.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:44:37.785Z",
+  "ai_confidence": 1,
+  "ai_processing_time_ms": 1071,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:44:38.857Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

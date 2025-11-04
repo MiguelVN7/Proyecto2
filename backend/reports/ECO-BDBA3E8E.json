@@ -1,0 +1,20 @@
+{
+  "id": "ECO-BDBA3E8E",
+  "timestamp": "2025-10-26T16:31:29.246487",
+  "location": {
+    "latitude": 6.1748582,
+    "longitude": -75.5427655,
+    "accuracy": 10
+  },
+  "classification": "Cartón corrugado",
+  "device_info": "android",
+  "image_path": "/images/ECO-BDBA3E8E.jpeg",
+  "status": "received",
+  "created_at": "2025-10-26T21:31:25.946Z",
+  "ai_confidence": 0.6822952926158905,
+  "ai_processing_time_ms": 2666,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-26T21:31:28.616Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

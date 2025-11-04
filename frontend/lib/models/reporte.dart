@@ -3,28 +3,40 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Report status enumeration for type-safe state management
 enum ReportStatus {
-  pending('Pendiente'),
-  received('Recibido'),
-  enRoute('En Recorrido'),
-  collected('Recogido'),
-  completed('Finalizado');
+  pending('Pendiente', 'pendiente'),
+  received('Recibido', 'received'),
+  assigned('Asignado', 'assigned'),
+  inProgress('En Proceso', 'in_progress'),
+  completed('Resuelto', 'completed'),
+  cancelled('Cancelado', 'cancelled');
 
-  const ReportStatus(this.displayName);
+  const ReportStatus(this.displayName, this.firestoreValue);
   final String displayName;
+  final String firestoreValue;
 
-  /// Creates ReportStatus from string value
+  /// Creates ReportStatus from string value (from Firestore)
   static ReportStatus fromString(String status) {
     switch (status.toLowerCase()) {
       case 'pendiente':
+      case 'pending':
         return ReportStatus.pending;
       case 'recibido':
+      case 'received':
         return ReportStatus.received;
-      case 'en recorrido':
-        return ReportStatus.enRoute;
-      case 'recogido':
-        return ReportStatus.collected;
+      case 'asignado':
+      case 'assigned':
+        return ReportStatus.assigned;
+      case 'en proceso':
+      case 'en_proceso':
+      case 'in_progress':
+        return ReportStatus.inProgress;
+      case 'resuelto':
       case 'finalizado':
+      case 'completed':
         return ReportStatus.completed;
+      case 'cancelado':
+      case 'cancelled':
+        return ReportStatus.cancelled;
       default:
         return ReportStatus.pending;
     }
@@ -50,6 +62,12 @@ class Reporte {
   final double? accuracy;
   final String? userId;
 
+  // AI Classification fields
+  final double? aiConfidence; // AI confidence level (0.0 - 1.0)
+  final int? aiProcessingTimeMs; // Processing time in milliseconds
+  final DateTime? aiClassifiedAt; // Timestamp when AI classified
+  final String? aiModelVersion; // Version of AI model used
+
   Reporte({
     required this.id,
     required this.fotoUrl,
@@ -66,7 +84,15 @@ class Reporte {
     this.deviceInfo,
     this.accuracy,
     this.userId,
+    // AI fields
+    this.aiConfidence,
+    this.aiProcessingTimeMs,
+    this.aiClassifiedAt,
+    this.aiModelVersion,
   });
+
+  /// Whether this report was classified by AI
+  bool get isAiClassified => aiConfidence != null && aiConfidence! > 0;
 
   /// Gets the current report status as an enum
   ReportStatus get statusEnum => ReportStatus.fromString(estado);
@@ -88,6 +114,11 @@ class Reporte {
     String? deviceInfo,
     double? accuracy,
     String? userId,
+    // AI fields
+    double? aiConfidence,
+    int? aiProcessingTimeMs,
+    DateTime? aiClassifiedAt,
+    String? aiModelVersion,
   }) {
     return Reporte(
       id: id ?? this.id,
@@ -105,6 +136,11 @@ class Reporte {
       deviceInfo: deviceInfo ?? this.deviceInfo,
       accuracy: accuracy ?? this.accuracy,
       userId: userId ?? this.userId,
+      // AI fields
+      aiConfidence: aiConfidence ?? this.aiConfidence,
+      aiProcessingTimeMs: aiProcessingTimeMs ?? this.aiProcessingTimeMs,
+      aiClassifiedAt: aiClassifiedAt ?? this.aiClassifiedAt,
+      aiModelVersion: aiModelVersion ?? this.aiModelVersion,
     );
   }
 
@@ -133,6 +169,13 @@ class Reporte {
       'updated_at': Timestamp.fromDate(updatedAt),
       'device_info': deviceInfo,
       'user_id': userId,
+      // AI fields
+      if (aiConfidence != null) 'ai_confidence': aiConfidence,
+      if (aiProcessingTimeMs != null)
+        'ai_processing_time_ms': aiProcessingTimeMs,
+      if (aiClassifiedAt != null)
+        'ai_classified_at': Timestamp.fromDate(aiClassifiedAt!),
+      if (aiModelVersion != null) 'ai_model_version': aiModelVersion,
     };
   }
 
@@ -163,6 +206,13 @@ class Reporte {
           : DateTime.now(),
       deviceInfo: data['device_info'],
       userId: data['user_id'],
+      // AI fields
+      aiConfidence: (data['ai_confidence'] as num?)?.toDouble(),
+      aiProcessingTimeMs: (data['ai_processing_time_ms'] as num?)?.toInt(),
+      aiClassifiedAt: (data['ai_classified_at'] is Timestamp)
+          ? (data['ai_classified_at'] as Timestamp).toDate()
+          : null,
+      aiModelVersion: data['ai_model_version'] as String?,
     );
   }
 
@@ -192,6 +242,13 @@ class Reporte {
           : DateTime.now(),
       deviceInfo: data['device_info'],
       userId: data['user_id'],
+      // AI fields
+      aiConfidence: (data['ai_confidence'] as num?)?.toDouble(),
+      aiProcessingTimeMs: (data['ai_processing_time_ms'] as num?)?.toInt(),
+      aiClassifiedAt: (data['ai_classified_at'] is Timestamp)
+          ? (data['ai_classified_at'] as Timestamp).toDate()
+          : null,
+      aiModelVersion: data['ai_model_version'] as String?,
     );
   }
 

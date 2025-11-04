@@ -89,7 +89,18 @@ class FirestoreService {
         updated_at: admin.firestore.Timestamp.now(),
         device_info: report.device_info || '',
         user_id: report.user_id || null,
+        // AI Classification fields
+        is_ai_classified: report.is_ai_classified || false,
       };
+
+      // Add AI fields only if AI classification was successful
+      if (report.is_ai_classified) {
+        firestoreData.ai_confidence = report.ai_confidence;
+        firestoreData.ai_processing_time_ms = report.ai_processing_time_ms;
+        firestoreData.ai_model_version = report.ai_model_version;
+        firestoreData.ai_classified_at = admin.firestore.Timestamp.fromDate(new Date(report.ai_classified_at));
+        firestoreData.ai_suggested_classification = report.ai_suggested_classification;
+      }
 
       // Use the report ID as the document ID
       await this.db.collection('reports').doc(report.id).set(firestoreData);

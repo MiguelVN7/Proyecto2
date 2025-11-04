@@ -22,7 +22,8 @@ class ApiConfig {
       // For web, use localhost
       return 'http://localhost:3000';
     } else if (Platform.isAndroid || Platform.isIOS) {
-      // For mobile devices, use network IP (updated for current network)
+      // For mobile devices, use network IP (update when changing networks)
+      // To find your current IP: ifconfig | grep "inet " | grep -v 127.0.0.1
       return 'http://192.168.1.115:3000';
     } else {
       // For desktop platforms (macOS, Windows, Linux), use localhost

@@ -10,6 +10,7 @@ import '../models/reporte.dart';
 import '../services/firestore_service.dart';
 import '../colors.dart';
 import '../location_service.dart';
+import '../widgets/ai_confidence_indicator.dart';
 
 /// Real-time reports screen using Firestore streams
 ///
@@ -63,17 +64,19 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildStatusChip('all', 'All Reports'),
+                        _buildStatusChip('all', 'Todos'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('pending', 'Pending'),
+                        _buildStatusChip('pending', 'Pendiente'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('received', 'Received'),
+                        _buildStatusChip('received', 'Recibido'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('en_route', 'In Progress'),
+                        _buildStatusChip('assigned', 'Asignado'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('collected', 'Collected'),
+                        _buildStatusChip('in_progress', 'En Proceso'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('completed', 'Completed'),
+                        _buildStatusChip('completed', 'Resuelto'),
+                        const SizedBox(width: 8),
+                        _buildStatusChip('cancelled', 'Cancelado'),
                       ],
                     ),
                   ),
@@ -153,14 +156,17 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
         case 'received':
           statusEnum = ReportStatus.received;
           break;
-        case 'en_route':
-          statusEnum = ReportStatus.enRoute;
+        case 'assigned':
+          statusEnum = ReportStatus.assigned;
           break;
-        case 'collected':
-          statusEnum = ReportStatus.collected;
+        case 'in_progress':
+          statusEnum = ReportStatus.inProgress;
           break;
         case 'completed':
           statusEnum = ReportStatus.completed;
+          break;
+        case 'cancelled':
+          statusEnum = ReportStatus.cancelled;
           break;
       }
 
@@ -405,13 +411,26 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          report.clasificacion,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: EcoColors.textPrimary,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                report.clasificacion,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: EcoColors.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (report.isAiClassified) ...[
+                              const SizedBox(width: 8),
+                              AIConfidenceBadge(
+                                confidence: report.aiConfidence!,
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -420,6 +439,8 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
                             fontSize: 14,
                             color: EcoColors.textSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -586,24 +607,44 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
   /// Build status badge
   Widget _buildStatusBadge(String status) {
     Color color;
+    String displayText = status;
+
     switch (status.toLowerCase()) {
       case 'pendiente':
+      case 'pending':
         color = Colors.orange;
+        displayText = 'Pendiente';
         break;
       case 'recibido':
+      case 'received':
         color = Colors.blue;
+        displayText = 'Recibido';
         break;
-      case 'en recorrido':
+      case 'asignado':
+      case 'assigned':
         color = Colors.purple;
+        displayText = 'Asignado';
         break;
-      case 'recogido':
-        color = Colors.green;
+      case 'en proceso':
+      case 'en_proceso':
+      case 'in_progress':
+        color = Colors.indigo;
+        displayText = 'En Proceso';
         break;
+      case 'resuelto':
       case 'finalizado':
-        color = Colors.grey;
+      case 'completed':
+        color = Colors.green;
+        displayText = 'Resuelto';
+        break;
+      case 'cancelado':
+      case 'cancelled':
+        color = Colors.red;
+        displayText = 'Cancelado';
         break;
       default:
         color = Colors.grey;
+        displayText = status;
     }
 
     return Container(
@@ -614,7 +655,7 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
         border: Border.all(color: color),
       ),
       child: Text(
-        status,
+        displayText,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
@@ -646,17 +687,46 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Report ${report.id}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Classification: ${report.clasificacion}'),
-            Text('Status: ${report.estado}'),
-            Text('Location: ${report.ubicacion}'),
-            Text('Priority: ${report.prioridad}'),
-            Text('Created: ${_formatDate(report.createdAt)}'),
-            if (report.deviceInfo != null) Text('Device: ${report.deviceInfo}'),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Classification: ${report.clasificacion}'),
+              const SizedBox(height: 8),
+              if (report.isAiClassified) ...[
+                AIConfidenceIndicator(
+                  confidence: report.aiConfidence!,
+                  compact: false,
+                  showLabel: true,
+                ),
+                const SizedBox(height: 8),
+                if (report.aiProcessingTimeMs != null)
+                  Text(
+                    'Processing time: ${report.aiProcessingTimeMs}ms',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: EcoColors.textSecondary,
+                    ),
+                  ),
+                if (report.aiModelVersion != null)
+                  Text(
+                    'Model version: ${report.aiModelVersion}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: EcoColors.textSecondary,
+                    ),
+                  ),
+                const Divider(height: 16),
+              ],
+              Text('Status: ${report.estado}'),
+              Text('Location: ${report.ubicacion}'),
+              Text('Priority: ${report.prioridad}'),
+              Text('Created: ${_formatDate(report.createdAt)}'),
+              if (report.deviceInfo != null)
+                Text('Device: ${report.deviceInfo}'),
+            ],
+          ),
         ),
         actions: [
           TextButton(

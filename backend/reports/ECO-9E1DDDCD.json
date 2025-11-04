@@ -1,0 +1,20 @@
+{
+  "id": "ECO-9E1DDDCD",
+  "timestamp": "2025-10-30T12:34:45.381305",
+  "location": {
+    "latitude": 6.2076118,
+    "longitude": -75.5483162,
+    "accuracy": 10
+  },
+  "classification": "Pilas usadas",
+  "device_info": "android",
+  "image_path": "/images/ECO-9E1DDDCD.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:34:41.769Z",
+  "ai_confidence": 0.6605014411625522,
+  "ai_processing_time_ms": 1638,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:34:43.408Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

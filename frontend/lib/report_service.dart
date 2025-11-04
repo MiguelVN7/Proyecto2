@@ -2,6 +2,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
 // Package imports:
 import 'package:http/http.dart' as http;
 
@@ -41,19 +44,23 @@ class ReportService {
     try {
       // Fast preflight: verify backend is reachable to avoid long hangs
       try {
+        debugPrint('🔍 Health check URL: ${ApiConfig.healthUrl}');
         final health = await http
             .get(
               Uri.parse(ApiConfig.healthUrl),
               headers: {'Accept': 'application/json'},
             )
             .timeout(const Duration(seconds: 3));
+        debugPrint('🔍 Health check response: ${health.statusCode}');
         if (health.statusCode != 200) {
           return ReportSubmissionResult.error(
             message:
                 'Backend not reachable (health ${health.statusCode}). Please check the server.',
           );
         }
+        debugPrint('✅ Health check passed');
       } catch (e) {
+        debugPrint('❌ Health check failed: $e');
         return ReportSubmissionResult.error(
           message:
               'Cannot reach backend at ${ApiConfig.baseUrl}. Ensure your phone and computer are on the same network and the server is running. ($e)',
@@ -94,6 +101,8 @@ class ReportService {
           reportCode: responseData['report_code'] as String,
           message: responseData['message'] as String,
           timestamp: responseData['timestamp'] as String?,
+          aiClassification:
+              responseData['ai_classification'] as Map<String, dynamic>?,
         );
       } else {
         return ReportSubmissionResult.error(
@@ -165,12 +174,16 @@ class ReportSubmissionResult {
   /// Timestamp when the report was processed by the backend (only for successful submissions).
   final String? timestamp;
 
+  /// AI classification data (only if backend processed with AI)
+  final Map<String, dynamic>? aiClassification;
+
   /// Private constructor to ensure instances are created through named constructors.
   ReportSubmissionResult._({
     required this.success,
     this.reportCode,
     required this.message,
     this.timestamp,
+    this.aiClassification,
   });
 
   /// Creates a successful report submission result.
@@ -182,16 +195,19 @@ class ReportSubmissionResult {
   /// - [reportCode]: Unique identifier assigned to the report by the backend
   /// - [message]: Success message from the server
   /// - [timestamp]: Optional timestamp of when the report was processed
+  /// - [aiClassification]: Optional AI classification data from backend
   factory ReportSubmissionResult.success({
     required String reportCode,
     required String message,
     String? timestamp,
+    Map<String, dynamic>? aiClassification,
   }) {
     return ReportSubmissionResult._(
       success: true,
       reportCode: reportCode,
       message: message,
       timestamp: timestamp,
+      aiClassification: aiClassification,
     );
   }
 

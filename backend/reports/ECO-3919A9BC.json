@@ -1,0 +1,20 @@
+{
+  "id": "ECO-3919A9BC",
+  "timestamp": "2025-10-30T12:35:06.976114",
+  "location": {
+    "latitude": 6.244203,
+    "longitude": -75.581212,
+    "accuracy": 10
+  },
+  "classification": "Lata de aluminio",
+  "device_info": "android",
+  "image_path": "/images/ECO-3919A9BC.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:35:03.373Z",
+  "ai_confidence": 1,
+  "ai_processing_time_ms": 1130,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:35:04.506Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Orgánico"
+}

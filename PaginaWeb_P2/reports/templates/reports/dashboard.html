@@ -1,0 +1,27 @@
+{% extends 'reports/base.html' %}
+{% block content %}
+<h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+<p>Bienvenido, {{ user.get_full_name }} - Zona {{ user.get_zona_asignada_display }}</p>
+<div class="row mt-4">
+    <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_asignados }}</h3><p>Reportes Asignados</p></div></div>
+    <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_resueltos }}</h3><p>Reportes Resueltos</p></div></div>
+    <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_pendientes }}</h3><p>Reportes Pendientes</p></div></div>
+</div>
+<div class="card mt-4 p-4">
+    <h5>Últimos Reportes Asignados</h5>
+    {% if ultimos_asignados %}
+    <table class="table mt-3">
+        <tr><th>ID</th><th>Tipo</th><th>Ubicación</th><th>Estado</th><th>Fecha</th></tr>
+        {% for r in ultimos_asignados %}
+        <tr>
+            <td>#{{ r.id }}</td>
+            <td>{{ r.get_tipo_residuo_display }}</td>
+            <td>{{ r.direccion|truncatewords:5 }}</td>
+            <td><span class="badge badge-estado-{{ r.estado }}">{{ r.get_estado_display }}</span></td>
+            <td>{{ r.fecha_reporte|date:"d/m/Y" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}<p>No hay reportes asignados</p>{% endif %}
+</div>
+{% endblock %}

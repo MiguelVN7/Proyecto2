@@ -1,0 +1,15 @@
+{
+  "id": "ECO-8279328F",
+  "timestamp": "2025-10-26T17:44:45.103308",
+  "location": {
+    "latitude": 6.1748699,
+    "longitude": -75.542638,
+    "accuracy": 10
+  },
+  "classification": "Tetrapak (envase de jugo)",
+  "device_info": "android",
+  "image_path": "/images/ECO-8279328F.jpeg",
+  "status": "received",
+  "created_at": "2025-10-26T22:44:41.808Z",
+  "is_ai_classified": false
+}

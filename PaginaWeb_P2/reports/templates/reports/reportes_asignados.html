@@ -1,0 +1,47 @@
+{% extends 'reports/base.html' %}
+{% block content %}
+<h1><i class="bi bi-clipboard-check"></i> Reportes Asignados</h1>
+<div class="card p-4 mt-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-3"><input type="text" name="q" class="form-control" placeholder="Buscar..."></div>
+        <div class="col-md-2">
+            <select name="tipo" class="form-select">
+                <option value="">Todos los tipos</option>
+                {% for v, l in tipos_disponibles %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="prioridad" class="form-select">
+                <option value="">Todas</option>
+                {% for v, l in prioridades_disponibles %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-success w-100">Filtrar</button></div>
+    </form>
+</div>
+<div class="card mt-4 p-4">
+    <h5>Total: {{ total_reportes }}</h5>
+    <table class="table mt-3">
+        <tr><th>ID</th><th>Tipo</th><th>Descripción</th><th>Ubicación</th><th>Prioridad</th><th>Fecha</th><th>Acciones</th></tr>
+        {% for r in reportes %}
+        <tr>
+            <td>#{{ r.id }}</td>
+            <td><span class="badge bg-secondary">{{ r.get_tipo_residuo_display }}</span></td>
+            <td>{{ r.descripcion|truncatewords:10 }}</td>
+            <td>{{ r.direccion|truncatewords:5 }}</td>
+            <td><span class="badge badge-prioridad-{{ r.prioridad }}">{{ r.get_prioridad_display }}</span></td>
+            <td>{{ r.fecha_reporte|date:"d/m/Y" }}</td>
+            <td>
+                {% if r.estado == 'asignado' or r.estado == 'en_proceso' %}
+                    <a href="{% url 'cerrar_reporte' r.id %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-camera"></i> Cerrar Reporte
+                    </a>
+                {% else %}
+                    <span class="badge bg-info">{{ r.get_estado_display }}</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}<tr><td colspan="7" class="text-center">No hay reportes</td></tr>{% endfor %}
+    </table>
+</div>
+{% endblock %}

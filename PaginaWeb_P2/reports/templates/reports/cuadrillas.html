@@ -1,0 +1,322 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Gestión de Cuadrillas - EcoTrack{% endblock %}
+
+{% block content %}
+<h1><i class="bi bi-people-fill"></i> Gestión de Cuadrillas</h1>
+<p class="text-muted mb-4">Administra los equipos de recolección</p>
+
+<style>
+
+        .actions-bar {
+            margin-bottom: 30px;
+        }
+        .cuadrillas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .cuadrilla-card {
+            transition: all 0.3s;
+        }
+        .cuadrilla-card:hover {
+            transform: translateY(-2px);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .cuadrilla-nombre {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-activa {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactiva {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .card-info {
+            margin-bottom: 15px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #555;
+        }
+        .info-label {
+            font-weight: 600;
+        }
+        .miembros-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .miembro-item {
+            padding: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .modal-content {
+            position: relative;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            margin: 50px auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .miembros-selector {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .miembro-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .miembro-checkbox:hover {
+            background: #f8f9fa;
+        }
+        .miembro-checkbox input {
+            margin-right: 10px;
+            width: auto;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card p-4">
+    <div class="actions-bar d-flex justify-content-between align-items-center">
+        <h3>Cuadrillas Registradas</h3>
+        <button class="btn btn-success" onclick="showCreateModal()">
+            <i class="bi bi-plus-circle"></i> Nueva Cuadrilla
+        </button>
+    </div>
+
+    <div class="cuadrillas-grid">
+        {% for cuadrilla in cuadrillas %}
+        <div class="cuadrilla-card card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ cuadrilla.nombre }}</h5>
+                <span class="badge {% if cuadrilla.activa %}bg-success{% else %}bg-danger{% endif %}">
+                    {% if cuadrilla.activa %}Activa{% else %}Inactiva{% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Miembros</small>
+                        <div class="fw-bold">{{ cuadrilla.miembros.count }}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Zona</small>
+                        <div class="fw-bold">{{ cuadrilla.get_zona_asignada_display|default:"Sin asignar" }}</div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Capacidad diaria</small>
+                        <div class="fw-bold">{{ cuadrilla.capacidad_diaria }} reportes</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Reportes activos</small>
+                        <div class="fw-bold">{{ cuadrilla.reportes_activos }}</div>
+                    </div>
+                </div>
+
+                {% if cuadrilla.miembros.all %}
+                <div class="border-top pt-3">
+                    <small class="text-muted">Integrantes:</small>
+                    {% for miembro in cuadrilla.miembros.all %}
+                    <div class="small mt-1">
+                        <i class="bi bi-person"></i> {{ miembro.get_full_name }} - {{ miembro.get_zona_asignada_display }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-clipboard-x display-1 text-muted"></i>
+            <h4 class="mt-3">No hay cuadrillas registradas</h4>
+            <p class="text-muted">Crea tu primera cuadrilla para comenzar a asignar reportes</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+    <!-- Modal Crear Cuadrilla -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                ➕ Crear Nueva Cuadrilla
+            </div>
+            <form method="post" action="{% url 'crear_cuadrilla' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="nombre">Nombre de la Cuadrilla *</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Cuadrilla Norte A">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zona_asignada">Zona Asignada</label>
+                        <select id="zona_asignada" name="zona_asignada">
+                            <option value="">Sin asignar</option>
+                            <option value="norte">Norte</option>
+                            <option value="sur">Sur</option>
+                            <option value="centro">Centro</option>
+                            <option value="oriente">Oriente</option>
+                            <option value="occidente">Occidente</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capacidad_diaria">Capacidad Diaria</label>
+                        <input type="number" id="capacidad_diaria" name="capacidad_diaria" value="10" min="1" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Miembros</label>
+                        <div class="miembros-selector">
+                            {% for usuario in usuarios_disponibles %}
+                            <label class="miembro-checkbox">
+                                <input type="checkbox" name="miembros[]" value="{{ usuario.id }}">
+                                {{ usuario.get_full_name }} - {{ usuario.get_zona_asignada_display }}
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Crear Cuadrilla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('createModal');
+            if (event.target == modal) {
+                closeCreateModal();
+            }
+        }
+    </script>
+{% endblock %}

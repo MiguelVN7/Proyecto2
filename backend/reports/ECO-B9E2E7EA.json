@@ -1,0 +1,20 @@
+{
+  "id": "ECO-B9E2E7EA",
+  "timestamp": "2025-10-30T12:03:21.910623",
+  "location": {
+    "latitude": 6.2075968,
+    "longitude": -75.5483149,
+    "accuracy": 10
+  },
+  "classification": "Residuo orgánico (cáscara de fruta)",
+  "device_info": "android",
+  "image_path": "/images/ECO-B9E2E7EA.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:03:18.031Z",
+  "ai_confidence": 0.7963200807571411,
+  "ai_processing_time_ms": 1045,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:03:19.077Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Reciclable"
+}

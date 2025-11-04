@@ -9,6 +9,7 @@ import '../models/reporte.dart';
 import '../services/firestore_service.dart';
 import '../screens/firestore_reports_screen.dart';
 import '../screens/user_profile_screen.dart';
+import '../widgets/ai_confidence_indicator.dart';
 
 /// Professional, responsive Home screen for EcoTrack
 ///
@@ -672,14 +673,28 @@ class _LatestReportCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  report.clasificacion,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        report.clasificacion,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    // AI Confidence Badge
+                    if (report.isAiClassified && report.aiConfidence != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: AIConfidenceBadge(
+                          confidence: report.aiConfidence!,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -857,14 +872,28 @@ class _ReportListTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    report.clasificacion,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          report.clasificacion,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                      // AI Badge for list items
+                      if (report.isAiClassified && report.aiConfidence != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: AIConfidenceBadge(
+                            confidence: report.aiConfidence!,
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Row(

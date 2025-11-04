@@ -1,0 +1,20 @@
+{
+  "id": "ECO-861991E2",
+  "timestamp": "2025-10-30T12:53:49.279276",
+  "location": {
+    "latitude": 6.207604,
+    "longitude": -75.5482858,
+    "accuracy": 10
+  },
+  "classification": "Bolsa plástica",
+  "device_info": "android",
+  "image_path": "/images/ECO-861991E2.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:53:45.509Z",
+  "ai_confidence": 1,
+  "ai_processing_time_ms": 925,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:53:46.434Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

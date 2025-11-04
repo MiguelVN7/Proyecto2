@@ -1,0 +1,20 @@
+{
+  "id": "ECO-EFA7298F",
+  "timestamp": "2025-10-30T12:16:34.412363",
+  "location": {
+    "latitude": 6.2076303,
+    "longitude": -75.5483145,
+    "accuracy": 10
+  },
+  "classification": "Papel de periódico",
+  "device_info": "android",
+  "image_path": "/images/ECO-EFA7298F.jpeg",
+  "status": "received",
+  "created_at": "2025-10-30T17:16:30.805Z",
+  "ai_confidence": 0.2685671846071879,
+  "ai_processing_time_ms": 1665,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-10-30T17:16:32.472Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "Orgánico"
+}
