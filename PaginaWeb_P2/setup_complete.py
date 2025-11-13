@@ -156,7 +156,7 @@ def dashboard_view(request):
     context = {
         'reportes_asignados': Report.objects.filter(assigned_to=user, estado__in=['asignado', 'en_proceso']).count(),
         'reportes_resueltos': Report.objects.filter(assigned_to=user, estado='resuelto').count(),
-        'reportes_pendientes': Report.objects.filter(estado='pendiente').count(),
+        'reportes_recibidos': Report.objects.filter(estado='recibido').count(),
         'ultimos_asignados': Report.objects.filter(assigned_to=user, estado__in=['asignado', 'en_proceso'])[:5],
     }
     return render(request, 'reports/dashboard.html', context)
@@ -356,7 +356,7 @@ dashboard_html = """{% extends 'reports/base.html' %}
 <div class="row mt-4">
     <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_asignados }}</h3><p>Reportes Asignados</p></div></div>
     <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_resueltos }}</h3><p>Reportes Resueltos</p></div></div>
-    <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_pendientes }}</h3><p>Reportes Pendientes</p></div></div>
+    <div class="col-md-4"><div class="card p-4"><h3>{{ reportes_recibidos }}</h3><p>Reportes Recibidos</p></div></div>
 </div>
 <div class="card mt-4 p-4">
     <h5>Últimos Reportes Asignados</h5>

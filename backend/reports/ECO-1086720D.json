@@ -1,0 +1,15 @@
+{
+  "id": "ECO-1086720D",
+  "timestamp": "2025-11-11T14:29:15.435808",
+  "location": {
+    "latitude": 6.1748675,
+    "longitude": -75.5425835,
+    "accuracy": 10
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-1086720D.jpeg",
+  "status": "received",
+  "created_at": "2025-11-11T19:29:15.512Z",
+  "is_ai_classified": false
+}

@@ -462,8 +462,6 @@ enum NotificationType {
         return NotificationType.reportCompleted;
       case ReportStatus.cancelled:
         return NotificationType.reportCollected;
-      case ReportStatus.pending:
-        return null; // No notification for pending status
     }
   }
 }

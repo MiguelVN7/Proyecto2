@@ -1,0 +1,20 @@
+{
+  "id": "ECO-DBCFAC45",
+  "timestamp": "2025-11-05T06:26:42.851563",
+  "location": {
+    "latitude": 6.2017733,
+    "longitude": -75.5782104,
+    "accuracy": 10
+  },
+  "classification": "Pilas usadas",
+  "device_info": "android",
+  "image_path": "/images/ECO-DBCFAC45.jpeg",
+  "status": "received",
+  "created_at": "2025-11-05T11:26:42.627Z",
+  "ai_confidence": 1,
+  "ai_processing_time_ms": 3442,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-11-05T11:26:46.071Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

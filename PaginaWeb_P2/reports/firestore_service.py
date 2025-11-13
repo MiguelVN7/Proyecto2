@@ -350,6 +350,9 @@ class FirestoreService:
         else:
             fecha_reporte = datetime.now()
 
+        estado_mapeado = self._map_estado_to_django(data.get('estado', 'received'))
+        prioridad_mapeada = self._map_prioridad_to_django(data.get('prioridad', 'media'))
+
         # Map Firestore fields to Django model fields
         return {
             'id': doc.id,
@@ -361,10 +364,10 @@ class FirestoreService:
             'latitud': latitud,
             'longitud': longitud,
             'direccion': data.get('ubicacion', ''),
-            'estado': self._map_estado_to_django(data.get('estado', 'received')),
-            'estado_display': data.get('estado', 'Recibido'),
-            'prioridad': self._map_prioridad_to_django(data.get('prioridad', 'Media')),
-            'prioridad_display': data.get('prioridad', 'Media'),
+            'estado': estado_mapeado,
+            'estado_display': self._get_estado_display(estado_mapeado),
+            'prioridad': prioridad_mapeada,
+            'prioridad_display': self._get_prioridad_display(prioridad_mapeada),
             'assigned_to': data.get('assigned_to'),
             'assigned_to_name': data.get('assigned_to_name', ''),
             'fecha_reporte': fecha_reporte,
@@ -385,36 +388,86 @@ class FirestoreService:
     def _map_clasificacion_to_django(self, firestore_value):
         """
         Map Firestore classification to Django model choices
+        Now maps all specific waste types to 3 basic categories:
+        - Reciclable
+        - No Reciclable  
+        - Orgánico
 
         Args:
             firestore_value: Classification from Firestore
 
         Returns:
-            Django-compatible classification value
+            Django-compatible classification value ('reciclable', 'no_reciclable', 'organico')
         """
         # Normalize to lowercase
-        value = str(firestore_value).lower().strip()
+        value = str(firestore_value or '').lower().strip()
 
-        # Direct mapping
-        mapping = {
-            'orgánico': 'organico',
-            'organico': 'organico',
-            'plástico': 'plastico',
-            'plastico': 'plastico',
-            'vidrio': 'vidrio',
-            'papel': 'papel',
-            'papel/cartón': 'papel',
-            'cartón': 'papel',
-            'metal': 'metal',
-            'electrónico': 'electronico',
-            'electronico': 'electronico',
-            'textil': 'textil',
-            'peligroso': 'peligroso',
-            'construcción': 'construccion',
-            'construccion': 'construccion',
-        }
+        if not value:
+            return 'no_reciclable'
 
-        return mapping.get(value, 'otros')
+        # Detect explicit "no reciclable" statements before checking recyclable keywords
+        negativos_explicit = [
+            'no reciclable',
+            'no-reciclable',
+            'non recyclable',
+            'non-recyclable',
+            'no reutilizable',
+            'no-reutilizable',
+            'no reusable',
+            'non reusable',
+        ]
+
+        if any(keyword in value for keyword in negativos_explicit):
+            return 'no_reciclable'
+
+        # Recyclable materials
+        reciclables = [
+            'reciclable', 'recyclable',
+            'plástico', 'plastico', 'plastic',
+            'vidrio', 'glass',
+            'papel', 'paper', 'cartón', 'carton', 'papel/cartón',
+            'metal', 'aluminio', 'lata',
+            'pet', 'hdpe', 'ldpe', 'pp', 'ps', 'pvc',
+            'botella', 'envase',
+            'tetra pack', 'tetrapak',
+        ]
+
+        # Organic materials
+        organicos = [
+            'orgánico', 'organico', 'organic',
+            'comida', 'food',
+            'vegetal', 'vegetales',
+            'fruta', 'frutas',
+            'residuos de jardín', 'jardin',
+            'biodegradable',
+        ]
+
+        # Non-recyclable (default for everything else)
+        # Including: electronic, textile, hazardous, construction, etc.
+        no_reciclables = [
+            'no reciclable', 'no-reciclable', 'non recyclable', 'non-recyclable',
+            'electrónico', 'electronico', 'electronic',
+            'pilas', 'bateria', 'batería', 'battery',
+            'textil', 'ropa',
+            'peligroso', 'hazard', 'químico', 'quimico',
+            'residuo sanitario', 'sanitario',
+            'escombro', 'construcción', 'construccion',
+            'celular', 'telefono', 'teléfono',
+        ]
+
+        # Check if it's organic
+        if any(keyword in value for keyword in organicos):
+            return 'organico'
+
+        # Check if it's recyclable
+        if any(keyword in value for keyword in reciclables):
+            return 'reciclable'
+
+        if any(keyword in value for keyword in no_reciclables):
+            return 'no_reciclable'
+        
+        # Default to non-recyclable
+        return 'no_reciclable'
 
     def _map_estado_to_django(self, firestore_estado):
         """
@@ -427,9 +480,10 @@ class FirestoreService:
             Django-compatible status value
         """
         mapping = {
-            'received': 'pendiente',
-            'recibido': 'pendiente',
-            'pendiente': 'pendiente',
+            'received': 'recibido',
+            'recibido': 'recibido',
+            'pending': 'recibido',  # Mapear pendiente antiguo a recibido
+            'pendiente': 'recibido',
             'assigned': 'asignado',
             'asignado': 'asignado',
             'in_progress': 'en_proceso',
@@ -442,7 +496,7 @@ class FirestoreService:
         }
 
         value = str(firestore_estado).lower().strip()
-        return mapping.get(value, 'pendiente')
+        return mapping.get(value, 'recibido')
 
     def _map_prioridad_to_django(self, firestore_prioridad):
         """
@@ -467,6 +521,25 @@ class FirestoreService:
 
         value = str(firestore_prioridad).lower().strip()
         return mapping.get(value, 'media')
+
+    def _get_estado_display(self, estado):
+        """Return the human readable label for an estado value."""
+        return {
+            'recibido': 'Recibido',
+            'asignado': 'Asignado',
+            'en_proceso': 'En Proceso',
+            'resuelto': 'Resuelto',
+            'cancelado': 'Cancelado',
+        }.get(estado, estado.replace('_', ' ').title())
+
+    def _get_prioridad_display(self, prioridad):
+        """Return the human readable label for a prioridad value."""
+        return {
+            'baja': 'Baja',
+            'media': 'Media',
+            'alta': 'Alta',
+            'urgente': 'Urgente',
+        }.get(prioridad, prioridad.title())
 
     def _parse_timestamp(self, timestamp):
         """

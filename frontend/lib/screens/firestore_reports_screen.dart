@@ -66,8 +66,6 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
                       children: [
                         _buildStatusChip('all', 'Todos'),
                         const SizedBox(width: 8),
-                        _buildStatusChip('pending', 'Pendiente'),
-                        const SizedBox(width: 8),
                         _buildStatusChip('received', 'Recibido'),
                         const SizedBox(width: 8),
                         _buildStatusChip('assigned', 'Asignado'),
@@ -150,9 +148,6 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
       // Convert status string to enum
       ReportStatus? statusEnum;
       switch (_selectedStatus) {
-        case 'pending':
-          statusEnum = ReportStatus.pending;
-          break;
         case 'received':
           statusEnum = ReportStatus.received;
           break;
@@ -453,7 +448,7 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
                       ],
                     ),
                   ),
-                  if (report.statusEnum == ReportStatus.pending)
+                  if (report.statusEnum == ReportStatus.received)
                     _buildEditMenu(report),
                 ],
               ),
@@ -503,9 +498,9 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
 
   Future<void> _onEditPhoto(Reporte report) async {
     try {
-      // Re-check latest status to avoid editing non-pending
+      // Re-check latest status to avoid editing non-received
       final latest = await FirestoreService().getReport(report.id);
-      if (latest == null || latest.statusEnum != ReportStatus.pending) {
+      if (latest == null || latest.statusEnum != ReportStatus.received) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('This report is no longer editable.')),
@@ -549,9 +544,9 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
 
   Future<void> _onEditLocation(Reporte report) async {
     try {
-      // Re-check latest status to avoid editing non-pending
+      // Re-check latest status to avoid editing non-received
       final latest = await FirestoreService().getReport(report.id);
-      if (latest == null || latest.statusEnum != ReportStatus.pending) {
+      if (latest == null || latest.statusEnum != ReportStatus.received) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('This report is no longer editable.')),
@@ -612,9 +607,6 @@ class _FirestoreReportsScreenState extends State<FirestoreReportsScreen> {
     switch (status.toLowerCase()) {
       case 'pendiente':
       case 'pending':
-        color = Colors.orange;
-        displayText = 'Pendiente';
-        break;
       case 'recibido':
       case 'received':
         color = Colors.blue;

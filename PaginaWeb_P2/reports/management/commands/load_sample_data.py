@@ -46,8 +46,8 @@ class Command(BaseCommand):
             dias = random.randint(0, 30)
             fecha_reporte = ahora - timedelta(days=dias)
             
-            estado = 'pendiente' if dias < 2 else ('resuelto' if dias > 10 else random.choice(['asignado', 'en_proceso']))
-            assigned = random.choice(encargados) if estado != 'pendiente' else None
+            estado = 'recibido' if dias < 2 else ('resuelto' if dias > 10 else random.choice(['asignado', 'en_proceso']))
+            assigned = random.choice(encargados) if estado != 'recibido' else None
             
             reporte = Report.objects.create(
                 tipo_residuo=tipo,

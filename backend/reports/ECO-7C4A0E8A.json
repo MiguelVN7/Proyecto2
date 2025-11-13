@@ -1,0 +1,15 @@
+{
+  "id": "ECO-7C4A0E8A",
+  "timestamp": "2025-11-11T13:40:14.445462",
+  "location": {
+    "latitude": 37.4219983,
+    "longitude": -122.084,
+    "accuracy": 10
+  },
+  "classification": "Lata de aluminio",
+  "device_info": "android",
+  "image_path": "/images/ECO-7C4A0E8A.jpeg",
+  "status": "received",
+  "created_at": "2025-11-11T18:40:17.121Z",
+  "is_ai_classified": false
+}

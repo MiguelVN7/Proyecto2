@@ -1007,8 +1007,6 @@ class _StatusChip extends StatelessWidget {
     Color bg;
     switch (label.toLowerCase()) {
       case 'pendiente':
-        bg = Colors.orange.shade200;
-        break;
       case 'recibido':
       case 'en recorrido':
         bg = Colors.blue.shade200;

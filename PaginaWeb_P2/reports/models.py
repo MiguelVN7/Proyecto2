@@ -44,13 +44,12 @@ class Cuadrilla(models.Model):
 
 class Report(models.Model):
     TIPOS_RESIDUO = [
-        ('organico', 'Orgánico'), ('plastico', 'Plástico'), ('vidrio', 'Vidrio'),
-        ('papel', 'Papel/Cartón'), ('metal', 'Metal'), ('electronico', 'Electrónico'),
-        ('textil', 'Textil'), ('peligroso', 'Peligroso'), ('construccion', 'Construcción'),
-        ('otros', 'Otros'),
+        ('reciclable', 'Reciclable'),
+        ('no_reciclable', 'No Reciclable'),
+        ('organico', 'Orgánico'),
     ]
     ESTADOS = [
-        ('pendiente', 'Pendiente'), ('asignado', 'Asignado'),
+        ('recibido', 'Recibido'), ('asignado', 'Asignado'),
         ('en_proceso', 'En Proceso'), ('resuelto', 'Resuelto'), ('cancelado', 'Cancelado'),
     ]
     PRIORIDADES = [
@@ -64,7 +63,7 @@ class Report(models.Model):
     latitud = models.DecimalField(max_digits=10, decimal_places=7)
     longitud = models.DecimalField(max_digits=10, decimal_places=7)
     direccion = models.CharField(max_length=255, blank=True)
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='recibido')
     prioridad = models.CharField(max_length=20, choices=PRIORIDADES, default='media')
     assigned_to = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, 
                                     blank=True, related_name='reportes_asignados')

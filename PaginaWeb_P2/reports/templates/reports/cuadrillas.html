@@ -225,7 +225,9 @@
                     </div>
                     <div class="col-6">
                         <small class="text-muted">Reportes activos</small>
-                        <div class="fw-bold">{{ cuadrilla.reportes_activos }}</div>
+                        <div class="fw-bold">
+                            {{ cuadrilla.reportes_activos_display|default:cuadrilla.reportes_activos }}
+                        </div>
                     </div>
                 </div>
 

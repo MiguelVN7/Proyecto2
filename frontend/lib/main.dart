@@ -207,7 +207,7 @@ final List<Reporte> reportesEjemplo = [
     lat: 6.244203,
     lng: -75.581212,
     prioridad: 'Alta',
-    estado: 'Pendiente',
+    estado: 'Recibido',
   ),
   Reporte.create(
     id: '2',

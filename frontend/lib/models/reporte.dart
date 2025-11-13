@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Report status enumeration for type-safe state management
 enum ReportStatus {
-  pending('Pendiente', 'pendiente'),
   received('Recibido', 'received'),
   assigned('Asignado', 'assigned'),
   inProgress('En Proceso', 'in_progress'),
@@ -19,7 +18,6 @@ enum ReportStatus {
     switch (status.toLowerCase()) {
       case 'pendiente':
       case 'pending':
-        return ReportStatus.pending;
       case 'recibido':
       case 'received':
         return ReportStatus.received;
@@ -38,7 +36,7 @@ enum ReportStatus {
       case 'cancelled':
         return ReportStatus.cancelled;
       default:
-        return ReportStatus.pending;
+        return ReportStatus.received;
     }
   }
 }
@@ -151,13 +149,17 @@ class Reporte {
 
   /// Convert Reporte to Firestore document
   Map<String, dynamic> toFirestore() {
+    // Convert display name to Firestore value for consistency with web
+    final statusEnum = ReportStatus.fromString(estado);
+
     return {
       'id': id,
       'foto_url': fotoUrl,
       'foto_base64': fotoBase64,
       'ubicacion': ubicacion,
       'clasificacion': clasificacion,
-      'estado': estado,
+      'estado': statusEnum
+          .firestoreValue, // Use firestoreValue instead of displayName
       'prioridad': prioridad,
       'tipo_residuo': tipoResiduo,
       'location': {
@@ -186,13 +188,17 @@ class Reporte {
         (data['location'] as Map<String, dynamic>?) ??
         {'latitude': 0.0, 'longitude': 0.0, 'accuracy': 0.0};
 
+    // Read estado from Firestore and convert to displayName for internal use
+    final firestoreEstado = data['estado'] ?? 'pending';
+    final statusEnum = ReportStatus.fromString(firestoreEstado);
+
     return Reporte(
       id: doc.id,
       fotoUrl: data['foto_url'] ?? '',
       fotoBase64: data['foto_base64'],
       ubicacion: data['ubicacion'] ?? '',
       clasificacion: data['clasificacion'] ?? '',
-      estado: data['estado'] ?? 'Pendiente',
+      estado: statusEnum.displayName, // Store as displayName for UI
       prioridad: data['prioridad'] ?? 'Media',
       tipoResiduo: data['tipo_residuo'] ?? '',
       lat: (location['latitude'] as num).toDouble(),
@@ -222,13 +228,17 @@ class Reporte {
         (data['location'] as Map<String, dynamic>?) ??
         {'latitude': 0.0, 'longitude': 0.0, 'accuracy': 0.0};
 
+    // Read estado from Firestore and convert to displayName for internal use
+    final firestoreEstado = data['estado'] ?? 'pending';
+    final statusEnum = ReportStatus.fromString(firestoreEstado);
+
     return Reporte(
       id: id,
       fotoUrl: data['foto_url'] ?? '',
       fotoBase64: data['foto_base64'],
       ubicacion: data['ubicacion'] ?? '',
       clasificacion: data['clasificacion'] ?? '',
-      estado: data['estado'] ?? 'Pendiente',
+      estado: statusEnum.displayName, // Store as displayName for UI
       prioridad: data['prioridad'] ?? 'Media',
       tipoResiduo: data['tipo_residuo'] ?? '',
       lat: (location['latitude'] as num).toDouble(),
@@ -263,7 +273,7 @@ class Reporte {
     required double lat,
     required double lng,
     String prioridad = 'Media',
-    String estado = 'Pendiente',
+    String estado = 'Recibido',
     double? accuracy,
     String? deviceInfo,
     String? userId,

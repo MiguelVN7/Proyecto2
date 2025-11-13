@@ -24,7 +24,7 @@ class ApiConfig {
     } else if (Platform.isAndroid || Platform.isIOS) {
       // For mobile devices, use network IP (update when changing networks)
       // To find your current IP: ifconfig | grep "inet " | grep -v 127.0.0.1
-      return 'http://192.168.1.115:3000';
+      return 'http://10.10.29.168:3000';
     } else {
       // For desktop platforms (macOS, Windows, Linux), use localhost
       return 'http://localhost:3000';

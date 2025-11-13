@@ -509,22 +509,22 @@ class _ListaReportesScreenState extends State<ListaReportesScreen> {
   /// Returns appropriate color for status enum values.
   ///
   /// Provides semantic color coding for each report status:
-  /// - Pending: Orange (waiting for action)
   /// - Received: Blue (information/acknowledgment)
-  /// - En Route: Purple (in progress)
-  /// - Collected: Green (success)
-  /// - Completed: Grey (finished)
+  /// - Assigned: Orange (assigned to personnel)
+  /// - In Progress: Purple (actively being worked on)
+  /// - Completed: Green (successfully resolved)
+  /// - Cancelled: Grey (cancelled/rejected)
   Color _getStatusColorFromEnum(ReportStatus status) {
     switch (status) {
-      case ReportStatus.pending:
-        return const Color(0xFFFF9800); // Orange
       case ReportStatus.received:
         return const Color(0xFF2196F3); // Blue
-      case ReportStatus.enRoute:
+      case ReportStatus.assigned:
+        return const Color(0xFFFF9800); // Orange
+      case ReportStatus.inProgress:
         return const Color(0xFF9C27B0); // Purple
-      case ReportStatus.collected:
-        return const Color(0xFF4CAF50); // Green
       case ReportStatus.completed:
+        return const Color(0xFF4CAF50); // Green
+      case ReportStatus.cancelled:
         return const Color(0xFF607D8B); // Blue Grey
     }
   }

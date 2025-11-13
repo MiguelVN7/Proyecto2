@@ -248,6 +248,9 @@ class FirestoreService {
       }
 
       // Merge to avoid overwriting previously set award fields
+      debugPrint('🔍 Document data to be written: ${baseData.keys.toList()}');
+      debugPrint('🔍 estado: ${baseData['estado']}, user_id: ${baseData['user_id']}, prioridad: ${baseData['prioridad']}');
+      
       try {
         await docRef.set(baseData, SetOptions(merge: true));
       } on FirebaseException catch (fe) {
@@ -405,11 +408,11 @@ class FirestoreService {
   ) async {
     try {
       debugPrint(
-        '🔄 Updating report status: $reportId -> ${newStatus.displayName}',
+        '🔄 Updating report status: $reportId -> ${newStatus.displayName} (${newStatus.firestoreValue})',
       );
 
-      // Update estado
-      await updateReport(reportId, {'estado': newStatus.displayName});
+      // Update estado with firestoreValue for consistency with web
+      await updateReport(reportId, {'estado': newStatus.firestoreValue});
 
       // Compute status bonus and award only once per status
       final bonus = PointsRules.statusBonus(newStatus.displayName);
@@ -767,7 +770,7 @@ class FirestoreService {
       for (final status in ReportStatus.values) {
         final statusSnapshot = await _firestore
             .collection(_reportsCollection)
-            .where('estado', isEqualTo: status.displayName)
+            .where('estado', isEqualTo: status.firestoreValue)
             .count()
             .get();
         statusCounts[status.displayName] = statusSnapshot.count ?? 0;

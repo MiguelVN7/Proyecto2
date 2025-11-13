@@ -3,17 +3,18 @@
 <h1><i class="bi bi-clipboard-check"></i> Reportes Asignados</h1>
 <div class="card p-4 mt-4">
     <form method="get" class="row g-3">
-        <div class="col-md-3"><input type="text" name="q" class="form-control" placeholder="Buscar..."></div>
-        <div class="col-md-2">
+        <div class="col-md-4"><input type="text" name="q" class="form-control" placeholder="Buscar..."
+            value="{{ filtro_q }}"></div>
+        <div class="col-md-3">
             <select name="tipo" class="form-select">
                 <option value="">Todos los tipos</option>
-                {% for v, l in tipos_disponibles %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+                {% for v, l in tipos_disponibles %}<option value="{{ v }}" {% if filtro_tipo == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <select name="prioridad" class="form-select">
                 <option value="">Todas</option>
-                {% for v, l in prioridades_disponibles %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+                {% for v, l in prioridades_disponibles %}<option value="{{ v }}" {% if filtro_prioridad == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
             </select>
         </div>
         <div class="col-md-2"><button type="submit" class="btn btn-success w-100">Filtrar</button></div>
@@ -26,18 +27,38 @@
         {% for r in reportes %}
         <tr>
             <td>#{{ r.id }}</td>
-            <td><span class="badge bg-secondary">{{ r.get_tipo_residuo_display }}</span></td>
-            <td>{{ r.descripcion|truncatewords:10 }}</td>
-            <td>{{ r.direccion|truncatewords:5 }}</td>
-            <td><span class="badge badge-prioridad-{{ r.prioridad }}">{{ r.get_prioridad_display }}</span></td>
+            <td>
+                {% if usando_firestore %}
+                <span class="badge bg-secondary">
+                    {{ r.tipo_residuo_display|default:r.tipo_residuo|default:"Sin clasificar" }}
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">{{ r.get_tipo_residuo_display }}</span>
+                {% endif %}
+            </td>
+            <td>{{ r.descripcion|default:""|truncatewords:10 }}</td>
+            <td>{{ r.direccion|default:""|truncatewords:5 }}</td>
+            <td>
+                {% if usando_firestore %}
+                <span class="badge badge-prioridad-{{ r.prioridad }}">
+                    {{ r.prioridad_display|default:r.prioridad }}
+                </span>
+                {% else %}
+                <span class="badge badge-prioridad-{{ r.prioridad }}">{{ r.get_prioridad_display }}</span>
+                {% endif %}
+            </td>
             <td>{{ r.fecha_reporte|date:"d/m/Y" }}</td>
             <td>
-                {% if r.estado == 'asignado' or r.estado == 'en_proceso' %}
-                    <a href="{% url 'cerrar_reporte' r.id %}" class="btn btn-success btn-sm">
-                        <i class="bi bi-camera"></i> Cerrar Reporte
-                    </a>
+                {% if usando_firestore %}
+                    <span class="badge bg-info">{{ r.estado_display|default:r.estado }}</span>
                 {% else %}
-                    <span class="badge bg-info">{{ r.get_estado_display }}</span>
+                    {% if r.estado == 'asignado' or r.estado == 'en_proceso' %}
+                        <a href="{% url 'cerrar_reporte' r.id %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-camera"></i> Cerrar Reporte
+                        </a>
+                    {% else %}
+                        <span class="badge bg-info">{{ r.get_estado_display }}</span>
+                    {% endif %}
                 {% endif %}
             </td>
         </tr>

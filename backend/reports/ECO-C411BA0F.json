@@ -1,0 +1,20 @@
+{
+  "id": "ECO-C411BA0F",
+  "timestamp": "2025-11-11T14:39:39.788042",
+  "location": {
+    "latitude": 6.1747856,
+    "longitude": -75.5426438,
+    "accuracy": 10
+  },
+  "classification": "Vidrio transparente",
+  "device_info": "android",
+  "image_path": "/images/ECO-C411BA0F.jpeg",
+  "status": "received",
+  "created_at": "2025-11-11T19:39:39.865Z",
+  "ai_confidence": 0.8421798774752922,
+  "ai_processing_time_ms": 2171,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-11-11T19:39:42.039Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

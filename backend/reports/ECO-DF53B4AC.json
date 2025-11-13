@@ -1,0 +1,20 @@
+{
+  "id": "ECO-DF53B4AC",
+  "timestamp": "2025-11-11T10:07:54.814434",
+  "location": {
+    "latitude": 6.1749104,
+    "longitude": -75.5426329,
+    "accuracy": 10
+  },
+  "classification": "Tetrapak (envase de jugo)",
+  "device_info": "android",
+  "image_path": "/images/ECO-DF53B4AC.jpeg",
+  "status": "received",
+  "created_at": "2025-11-11T15:07:54.837Z",
+  "ai_confidence": 0.8380121933387756,
+  "ai_processing_time_ms": 952,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-11-11T15:07:55.790Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

@@ -61,7 +61,7 @@ class ReportAdmin(admin.ModelAdmin):
     
     def estado_badge(self, obj):
         colors = {
-            'pendiente': '#ffc107',
+            'recibido': '#ffc107',
             'asignado': '#17a2b8',
             'en_proceso': '#007bff',
             'resuelto': '#28a745',

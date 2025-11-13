@@ -1,0 +1,20 @@
+{
+  "id": "ECO-1F012AFF",
+  "timestamp": "2025-11-11T13:45:02.924419",
+  "location": {
+    "latitude": 6.244203,
+    "longitude": -75.581212,
+    "accuracy": 10
+  },
+  "classification": "Botella de plástico PET",
+  "device_info": "android",
+  "image_path": "/images/ECO-1F012AFF.jpeg",
+  "status": "received",
+  "created_at": "2025-11-11T18:45:03.052Z",
+  "ai_confidence": 0.8539384871861541,
+  "ai_processing_time_ms": 932,
+  "ai_model_version": "google-vision-v1",
+  "ai_classified_at": "2025-11-11T18:45:03.989Z",
+  "is_ai_classified": true,
+  "ai_suggested_classification": "No Reciclable"
+}

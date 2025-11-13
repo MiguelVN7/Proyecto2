@@ -37,6 +37,21 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
     }
 
+    function hasUserProfile() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function canSubmitReport() {
+      // Allow fully verified users, users with pending verification, or anonymous users
+      return isSignedIn() && (
+        isValidUser() ||
+        hasUserProfile() ||
+        (request.auth.token.firebase != null &&
+         request.auth.token.firebase.sign_in_provider == 'anonymous')
+      );
+    }
+
     // User profiles collection
     match /users/{uid} {
       // Users can read their own profile
@@ -85,34 +100,32 @@ service cloud.firestore {
       // Anyone can read reports (for public visibility of environmental issues)
       allow read: if true;
 
-      // Only verified users can create reports
-      allow create: if isValidUser() &&
-                      // Validate required fields
-                      request.resource.data.keys().hasAll(['userId', 'email', 'ubicacion', 'clasificacion', 'estado', 'prioridad', 'createdAt']) &&
-                      // Ensure user ID matches auth
-                      request.resource.data.userId == request.auth.uid &&
-                      // Ensure email matches auth
-                      request.resource.data.email == request.auth.token.email &&
-                      // Validate status is initial state
-                      request.resource.data.estado in ['Pendiente', 'pendiente'] &&
+      // Any authenticated user can create reports (including anonymous users)
+      allow create: if canSubmitReport() &&
+                      // Validate required fields (using snake_case as sent by the app)
+                      request.resource.data.keys().hasAll(['user_id', 'ubicacion', 'clasificacion', 'estado', 'prioridad', 'location']) &&
+                      // Ensure user ID matches auth (anonymous or registered)
+                      request.resource.data.user_id == request.auth.uid &&
+                      // Initial status must be received
+                      request.resource.data.estado in ['Recibido', 'received'] &&
                       // Validate priority values
-                      request.resource.data.prioridad in ['Alta', 'Media', 'Baja', 'alta', 'media', 'baja'];
+                      request.resource.data.prioridad in ['Alta', 'Media', 'Baja', 'Urgente', 'alta', 'media', 'baja', 'urgente'];
 
       // Report creators can update their own reports (limited fields)
-      allow update: if isValidUser() &&
-                      resource.data.userId == request.auth.uid &&
-                      // Can only update these fields as report creator
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ubicacion', 'clasificacion', 'descripcion', 'fotoUrl', 'updatedAt']) &&
-                      // Cannot change status or other system fields
-                      request.resource.data.estado == resource.data.estado;
+      allow update: if isSignedIn() &&
+                      resource.data.user_id == request.auth.uid &&
+                      // Prevent status tampering by report creator
+                      request.resource.data.estado == resource.data.estado &&
+                      // Ensure ownership cannot be reassigned
+                      request.resource.data.user_id == resource.data.user_id;
 
       // Moderators can update report status and other fields
       allow update: if isModerator();
 
-      // Report creators can delete their own reports (only if pending)
-      allow delete: if isValidUser() &&
-                      resource.data.userId == request.auth.uid &&
-                      resource.data.estado in ['Pendiente', 'pendiente'];
+      // Report creators can delete their own reports (only if received/pending initial state)
+      allow delete: if isSignedIn() &&
+                      resource.data.user_id == request.auth.uid &&
+                      resource.data.estado in ['Recibido', 'received'];
 
       // Admins can delete any report
       allow delete: if isAdmin();

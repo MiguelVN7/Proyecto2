@@ -130,8 +130,11 @@
             z-index: 1000 !important;
             font-weight: 600;
         }
-        .badge-pendiente { background: #fff3cd; color: #856404; }
+        .badge-recibido { background: #fff3cd; color: #856404; }
         .badge-asignado { background: #d1ecf1; color: #0c5460; }
+        .badge-en_proceso { background: #e2e3ff; color: #1b1e5f; }
+        .badge-resuelto { background: #d4edda; color: #155724; }
+        .badge-cancelado { background: #f8d7da; color: #721c24; }
         .badge-urgente { background: #f8d7da; color: #721c24; }
         .badge-alta { background: #f8d7da; color: #721c24; }
         .badge-media { background: #fff3cd; color: #856404; }
@@ -234,8 +237,9 @@
             <label class="form-label">Estado</label>
             <select id="filtroEstado" class="form-select">
                 <option value="">Todos</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="asignado">Asignado</option>
+                {% for key, label in estados_disponibles %}
+                <option value="{{ key }}" {% if filtro_estado == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class="col-md-3">
@@ -243,7 +247,7 @@
             <select id="filtroTipo" class="form-select">
                 <option value="">Todos</option>
                 {% for key, label in tipos_disponibles %}
-                <option value="{{ key }}">{{ label }}</option>
+                <option value="{{ key }}" {% if filtro_tipo == key %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -252,7 +256,7 @@
             <select id="filtroPrioridad" class="form-select">
                 <option value="">Todas</option>
                 {% for key, label in prioridades_disponibles %}
-                <option value="{{ key }}">{{ label }}</option>
+                <option value="{{ key }}" {% if filtro_prioridad == key %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -261,7 +265,9 @@
             <select id="filtroCuadrilla" class="form-select">
                 <option value="">Todas</option>
                 {% for cuadrilla in cuadrillas %}
-                <option value="{{ cuadrilla.id }}">{{ cuadrilla.nombre }}</option>
+                <option value="{{ cuadrilla.id }}" {% if filtro_cuadrilla == cuadrilla.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cuadrilla.nombre }}
+                </option>
                 {% endfor %}
             </select>
         </div>
@@ -328,11 +334,9 @@
                                     <select class="estado-selector" data-reporte-id="{{ reporte.id }}" data-estado-actual="{{ reporte.estado }}"
                                             style="flex: 1; padding: 5px 8px; border: 2px solid #ddd; border-radius: 4px; font-size: 13px;"
                                             onclick="event.stopPropagation();">
-                                        <option value="pendiente" {% if reporte.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
-                                        <option value="asignado" {% if reporte.estado == 'asignado' %}selected{% endif %}>Asignado</option>
-                                        <option value="en_proceso" {% if reporte.estado == 'en_proceso' %}selected{% endif %}>En Proceso</option>
-                                        <option value="resuelto" {% if reporte.estado == 'resuelto' %}selected{% endif %}>Resuelto</option>
-                                        <option value="cancelado" {% if reporte.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                        {% for key, label in estados_disponibles %}
+                                        <option value="{{ key }}" {% if reporte.estado == key %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
                                     </select>
                                     <button class="btn-cambiar-estado btn btn-sm btn-primary"
                                             data-reporte-id="{{ reporte.id }}"
@@ -793,7 +797,7 @@
 
                         // Mapeo de estados para mostrar
                         const estadosDisplay = {
-                            'pendiente': 'Pendiente',
+                            'recibido': 'Recibido',
                             'asignado': 'Asignado',
                             'en_proceso': 'En Proceso',
                             'resuelto': 'Resuelto',
